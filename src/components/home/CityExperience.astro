@@ -1,0 +1,478 @@
+---
+import ExperienceTitle from './ExperienceTitle.astro';
+import ContactLanding from '../ContactLanding.astro';
+---
+<meta charset="utf-8" />
+<ContactLanding immersive />
+<a class="city-mode-switch" href="/portfolio-2d/" aria-label="Passer à la version 2D">VERSION 2D ↗</a>
+<div id="city-experience">
+  <div id="city-canvas"></div>
+  <div class="city-hud">
+    <span>CLÉMENT BERTRAND</span>
+    <span id="city-progress">0 %</span>
+  </div>
+  <div id="city-loading"><p>Chargement de l’expérience…</p></div>
+  <div id="city-entry" hidden>
+    <p>CLÉMENT BERTRAND</p>
+    <button id="city-enter" aria-label="Entrer dans l’expérience"><ExperienceTitle /></button>
+    
+    <a href="/portfolio-2d/">VERSION 2D ↗</a>
+  </div>
+  <p id="city-scroll-start" hidden>Faites défiler pour explorer ↕</p>
+  <aside id="city-about-hint" hidden><span aria-hidden="true">↑ ↓</span><p>Prenez le temps de lire.<br>Défilez dans les deux sens.</p></aside>
+  <aside id="sparky-dialogue" hidden role="status" aria-live="polite"><strong>● SPARKY</strong><p></p></aside>
+  <noscript><a href="/portfolio-2d/">Découvrir le portfolio en 2D</a></noscript>
+</div>
+<style>
+  #city-experience {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: #02030b;
+  }
+  #city-canvas {
+    position: absolute;
+    inset: 0;
+  }
+  #city-canvas :global(canvas) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .city-hud {
+    position: absolute;
+    z-index: 10;
+    top: 30px;
+    left: 35px;
+    right: 35px;
+    display: flex;
+    justify-content: space-between;
+    color: #b9c4ff;
+    font: 11px Arial, sans-serif;
+    letter-spacing: 0.2em;
+    pointer-events: none;
+  }
+  #city-loading {
+    position: absolute;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: #02030b;
+    color: #b9c4ff;
+    font: 12px Arial, sans-serif;
+    letter-spacing: 0.2em;
+  }
+  #city-entry {position:absolute;inset:0;z-index:15;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:30px;background:linear-gradient(0deg,#020611b8,transparent 70%);color:#d9e6ff;text-align:center;font-family:Arial,sans-serif}
+  #city-entry[hidden],#city-scroll-start[hidden],#city-about-hint[hidden]{display:none}
+  #city-entry>p{font-size:11px;letter-spacing:.25em}
+  #city-enter{width:min(78vw,900px);padding:22px 0;background:none;border:0;cursor:pointer;transition:filter .3s,transform .3s}
+  #city-enter img{width:100%;height:auto;filter:brightness(0) invert(1);display:block}
+  #city-enter:hover{filter:drop-shadow(0 0 14px #7eafff);transform:scale(1.015)}
+  #city-entry>span{font-size:13px;color:#b4c3db}
+  #city-entry>a{color:#c8d8f2;font-size:12px;text-underline-offset:6px;padding:12px}
+  #city-enter:focus-visible{outline:2px solid #b1d9ff;outline-offset:12px}
+  #city-scroll-start{position:absolute;bottom:30px;left:0;right:0;z-index:12;color:#b8d1f2;text-align:center;font:12px Arial;letter-spacing:.12em;pointer-events:none}
+  #city-about-hint{position:absolute;bottom:35px;left:35px;z-index:12;display:flex;align-items:center;gap:14px;padding:12px 18px;background:#050b18c9;border-left:1px solid #759bc8;color:#d1e1f7;pointer-events:none;font:12px/1.7 Arial}
+  #city-about-hint>span{font-size:30px;letter-spacing:.15em}#city-about-hint p{margin:0}
+  #city-experience :global(.experience-loader){width:min(520px,calc(100vw - 56px));text-align:center;line-height:1.7;letter-spacing:normal;font-family:Arial,sans-serif}
+  #city-experience :global(.loader-kicker){font-size:10px;letter-spacing:.22em;color:#8fa9ce;margin-top:40px}
+  #city-experience :global(.experience-loader h1){font-size:clamp(20px,4vw,28px);font-weight:400;color:#e1eaff;letter-spacing:-.02em;margin:18px 0 32px}
+  #city-experience :global(.loader-track){height:2px;background:#1c2b43;width:100%;overflow:hidden}
+  #city-experience :global(.loader-track span){display:block;width:100%;height:100%;transform:scaleX(0);transform-origin:left;background:#a8d6ff;box-shadow:0 0 15px #84afff;transition:transform .4s ease}
+  #city-experience :global(.loader-status){font-size:11px;color:#8ea4c6;min-height:20px;margin:14px 0 34px}
+  #city-experience :global(.loader-project){font-size:14px;color:#c3d4ee;min-height:48px}
+  #city-experience :global(.loader-audio){font-size:12px;line-height:1.8;color:#8e9fb9;margin:25px 0}
+  #city-experience :global(.experience-loader a){display:inline-block;color:#aabedb;font-size:11px;text-underline-offset:5px;padding:12px}
+  #city-experience :global(.loader-retry){background:#142139;border:1px solid #728caf;color:#e3edff;padding:10px 20px;cursor:pointer}
+  #city-experience :global(.loader-orbit){height:44px;display:flex;gap:9px;justify-content:center;align-items:center}
+  #city-experience :global(.loader-orbit i){width:5px;height:5px;background:#9ac6ff;border-radius:50%;animation:loaderPulse 1.4s ease-in-out infinite}
+  #city-experience :global(.loader-orbit i:nth-child(2)){animation-delay:.17s}#city-experience :global(.loader-orbit i:nth-child(3)){animation-delay:.34s}
+  @keyframes loaderPulse{0%,100%{transform:translateY(0);opacity:.3}50%{transform:translateY(-10px);opacity:1}}
+  @media(prefers-reduced-motion:reduce){#city-experience :global(.loader-orbit i){animation:none}#city-enter{transition:none}}
+  @media(max-width:600px){.city-hud{left:20px;right:20px;top:22px}#city-about-hint{left:20px;bottom:25px;font-size:11px}}
+  .city-mode-switch{position:fixed;right:30px;bottom:26px;z-index:100;background:#090b18d9;border:1px solid #7164ac66;color:#d8d4ed;text-decoration:none;padding:12px 17px;font:10px Arial;letter-spacing:.16em;backdrop-filter:blur(8px)}
+  .city-mode-switch:hover{border-color:#a795ed;color:white}.city-mode-switch:focus-visible{outline:2px solid #a4ceff;outline-offset:4px}
+  #city-enter img{filter:none}#city-enter{cursor:crosshair}
+  #city-loading{background:radial-gradient(ellipse at 20% 20%,#1a124d55,transparent 55%),radial-gradient(ellipse at 85% 80%,#08295755,transparent 55%),#03030a}
+  #city-loading::before{content:'';position:absolute;inset:24px;border:1px solid #7564bd22;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 3px,#968eff03 3px 4px)}
+  #city-experience :global(.experience-loader){position:relative;width:min(650px,calc(100vw - 70px));text-align:left;padding:40px 0}
+  #city-experience :global(.loader-kicker){letter-spacing:.3em;color:#978cba;margin:0 0 42px}
+  #city-experience :global(.experience-loader h1){font-size:clamp(28px,4vw,48px);max-width:560px;line-height:1.15;margin:18px 0 42px;color:#e1dcf4}
+  #city-experience :global(.loader-orbit){justify-content:flex-start;height:32px;gap:5px;margin-bottom:30px}
+  #city-experience :global(.loader-orbit i){border-radius:0;width:4px;height:22px;background:#9981ff;box-shadow:0 0 12px #8276ff55;animation:loaderSignal 1.2s ease-in-out infinite}
+  #city-experience :global(.loader-track){height:3px;background:#4f41644d}
+  #city-experience :global(.loader-track span){background:linear-gradient(90deg,#6550d6,#af9aff,#8fd6fb);box-shadow:0 0 15px #9a86ff88}
+  #city-experience :global(.loader-status){letter-spacing:.08em;color:#9b91b8;font-size:11px;margin-bottom:40px}
+  #city-experience :global(.loader-audio){border-left:1px solid #7162a4;padding-left:18px;line-height:1.9;color:#aaa0bc;font-size:12px}
+  #city-experience :global(.experience-loader a){padding-left:0;margin-top:14px;color:#b6a6db}
+  @keyframes loaderSignal{0%,100%{transform:scaleY(.35);opacity:.35}50%{transform:scaleY(1);opacity:1}}
+  @font-face{font-family:'Le Murmure';src:url('/fonts/les-murmures/le-murmure.otf') format('opentype');font-display:swap}
+  .city-hud>span:first-child,#city-entry>p{font-family:'Le Murmure',sans-serif;font-size:28px;letter-spacing:.06em}
+  #city-entry>a,.city-mode-switch{font-family:'Le Murmure',sans-serif;font-size:25px;letter-spacing:.08em;background:linear-gradient(110deg,#7130da,#204bdf);background-clip:text;-webkit-background-clip:text;color:transparent;border:0;text-decoration:none;filter:drop-shadow(0 0 7px #563be777);transition:filter .25s,transform .25s}
+  #city-entry>a:hover,.city-mode-switch:hover{color:#96e9ff;filter:drop-shadow(0 0 12px #725bff);transform:skewX(-5deg)}
+  #city-entry{isolation:isolate} #city-entry::before{content:'';position:absolute;inset:-15%;pointer-events:none;background:repeating-radial-gradient(ellipse at 50% 85%,transparent 0 48px,#77bfff35 50px,#467ac318 53px,transparent 59px 100px);animation:entryWater 6s ease-in-out infinite;z-index:0;mix-blend-mode:screen;mask-image:linear-gradient(transparent 15%,#000 65%);opacity:.65} #city-entry>*{position:relative;z-index:1}
+  @keyframes entryWater{0%,100%{transform:translateY(12px) scale(1, .94);opacity:.4}50%{transform:translateY(-22px) scale(1.08,1.12);opacity:.8}}
+  @media(prefers-reduced-motion:reduce){#city-entry::before{animation:none}}
+@font-face{font-family:'Sparky Pixel';src:url('/fonts/project-pages/jersey-15.ttf') format('truetype');font-display:swap}
+#sparky-dialogue{position:absolute;z-index:19;top:max(90px,10vh);bottom:auto;left:50%;transform:translateX(-50%);width:min(780px,calc(100vw - 48px));box-sizing:border-box;padding:20px 26px;background:linear-gradient(110deg,#073047ed,#03141eea);border:1px solid #6ae7ff;border-radius:14px;box-shadow:0 0 15px #37d9ee40;color:#bbf6ff;font:clamp(21px,2vw,28px)/1.25 'Sparky Pixel',monospace;pointer-events:none}
+#sparky-dialogue[hidden]{display:none}#sparky-dialogue strong{font-size:18px;letter-spacing:.12em;color:#79efff;text-shadow:0 0 8px #41e6ff}#sparky-dialogue p{margin:12px 0 0;white-space:pre-line}
+</style>
+<script>
+  import * as THREE from 'three';
+  import {wheelAdvance,keyAdvance,touchAdvance,initialPixelRatio,createFrameBudget} from '../../lib/experience-controls.js';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+  import { createCityAssetCache } from '../../lib/city-render/assets.js';
+  import { loadCityModel } from '../../lib/city-render/model-loading.js';
+  import { configureCityDecoder, yieldMainThread } from '../../lib/city-render/startup.js';
+  import { traceCityStage, traceCityGraphics } from '../../lib/city-render/trace.js';
+  import { classifyClips, createCityRendering, restoreAssetSurfaces } from '../../lib/city-render/pipeline.js';
+  import { createCityLoading, createCityRenderer } from '../../lib/city-render/loading.js';
+  import { createArrivalSequence } from '../../lib/city-render/arrival.js';
+  import { createHyperspaceTransition } from '../../lib/city-render/hyperspace.js';
+  import { createDeferredSpaceExperience as createSpaceExperience } from '../../lib/space/lazy.js';
+  import { sampleReturnBridge } from '../../lib/space/scroll.js';
+  const container = document.querySelector<HTMLElement>('#city-canvas');
+  const loading = document.querySelector<HTMLElement>('#city-loading');
+  const progressLabel = document.querySelector<HTMLElement>('#city-progress');
+  const loadingState = createCityLoading(loading);
+  async function startCity() {
+    if (!container) { loadingState.complete(); return; }
+    traceCityStage('renderer-create');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#02030b');
+    const renderer = createCityRenderer(THREE.WebGLRenderer);
+    traceCityGraphics(renderer);
+    renderer.domElement.addEventListener('webglcontextlost', () => {
+      loadingState.fail(new Error('WebGL context lost'));
+    });
+    renderer.setPixelRatio(initialPixelRatio(innerWidth,innerHeight,devicePixelRatio));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.85;
+    container.appendChild(renderer.domElement);
+    const decoderWorkers = await configureCityDecoder(MeshoptDecoder);
+    console.info('City decoder workers', decoderWorkers);
+    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    const assets=createCityAssetCache(loader);
+    // Only resources required by the opening city compete with its decoding.
+    assets.loadAsync('/models/city-render/DistrictAdditions.glb');
+    assets.loadAsync('/models/city-render/SparkySurfaces.glb');
+    const startupStart=performance.now();
+    loadingState.stage('Téléchargement de la ville…');
+    loadCityModel(loader,
+      '/models/villeportfolio_RUNTIME.glb',
+      async (gltf) => {
+        try {
+        const modelReady=performance.now();
+        loadingState.stage('La ville prend forme…', 35);
+        scene.add(gltf.scene);
+        const clips = classifyClips(gltf.scene, gltf.animations);
+        traceCityStage('rendering-setup-begin');
+        const rendering = await createCityRendering(renderer, scene, gltf, assets);
+        traceCityStage('rendering-setup-end');
+        let assetEffects;
+        loadingState.stage('Les personnages se préparent…', 45);
+        try {
+          assetEffects = await restoreAssetSurfaces(gltf, assets, rendering, {deferTrails:true});
+        } catch (error) {
+          loadingState.fail(error);
+          return;
+        }
+        // A Blender volume is not a renderable opaque shell in glTF.
+        gltf.scene.traverse((object) => {
+          if (object.name === 'CP2_ATMOSPHERE_PREVIEW_ONLY') object.visible = false;
+        });
+        const camera = gltf.cameras.find(
+          (cam) => cam.name.toLowerCase().includes('scroll')
+        ) ?? gltf.cameras[0];
+        if (!camera) {
+          if (loading) {
+            loading.textContent = 'ERREUR : AUCUNE CAMÃ‰RA DANS LE GLB';
+          }
+          return;
+        }
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        if (!gltf.animations.length) {
+          if (loading) {
+            loading.textContent = 'ERREUR : AUCUNE ANIMATION DANS LE GLB';
+          }
+          return;
+        }
+        const mixer = new THREE.AnimationMixer(gltf.scene);
+        const clip =
+          gltf.animations.find((animation) =>
+            animation.tracks.some((track) =>
+              track.name.toLowerCase().includes('scroll')
+            )
+          ) ?? gltf.animations[0];
+        const action = mixer.clipAction(clip);
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
+        action.play();
+        let lastCameraTime = -1;
+        function setCameraTime(time: number) { if(time===lastCameraTime)return;lastCameraTime=time;action.paused = false; mixer.setTime(time); }
+        const stationClips = gltf.animations.filter(animation => ['ArmatureAction', 'Cylinder002_Material #26_0Action'].includes(animation.name));
+        if (stationClips.length !== 2) throw new Error('Les animations synchronisées de Sparky et du levier sont absentes');
+        const actorStart = Math.min(...stationClips.flatMap(animation => animation.tracks.map(track => track.times[0])));
+        const actorEnd = Math.max(...stationClips.flatMap(animation => animation.tracks.map(track => track.times[track.times.length - 1])));
+        const stationMixer = new THREE.AnimationMixer(gltf.scene);
+        const stationActions = stationClips.map(animation => {
+          const stationAction = stationMixer.clipAction(animation);
+          stationAction.setLoop(THREE.LoopOnce, 1);
+          stationAction.clampWhenFinished = true;
+          stationAction.play();
+          return stationAction;
+        });
+        let lastStationTime = -1;
+        function setStationTime(time: number) { if(time===lastStationTime)return;lastStationTime=time;stationActions.forEach(stationAction => stationAction.paused = false); stationMixer.setTime(time); }
+        setStationTime(actorStart);
+        
+        const secondaryMixer = new THREE.AnimationMixer(gltf.scene);
+        gltf.animations
+          .filter((animation) => animation !== clip && !stationClips.includes(animation) && clips.valid.includes(animation))
+          .forEach((animation) => {
+            const secondaryAction = secondaryMixer.clipAction(animation);
+            secondaryAction.setLoop(THREE.LoopRepeat, Infinity);
+            secondaryAction.play();
+          });
+        rendering.setCamera(camera);
+        rendering.freezeStaticTransforms();
+        traceCityStage('animations-bound');
+        console.info('City rendering checks', JSON.stringify({ ...rendering.stats, validClips: clips.valid.length, otherSceneClips: clips.foreign.length, mixedClips: clips.mixed.length }));
+        console.log(
+          'Animations disponibles :',
+          gltf.animations.map((animation) => animation.name)
+        );
+        
+        // Parcours camera : frames 1 a 188
+        const cameraEndFrame = 188;
+        const blenderFPS = 24;
+        const duration = Math.min(
+          clip.duration,
+          cameraEndFrame / blenderFPS
+        );
+  
+        // Ã‰chantillonnage de la trajectoire pour mesurer
+        // la distance rÃ©elle parcourue par la camÃ©ra.
+        const sampleCount = 384;
+        const times: number[] = [];
+        const distances: number[] = [];
+        const previousPosition = new THREE.Vector3();
+        const currentPosition = new THREE.Vector3();
+        let totalDistance = 0;
+        for (let i = 0; i <= sampleCount; i++) {
+          const time = (i / sampleCount) * duration;
+          setCameraTime(time);
+          camera.updateWorldMatrix(true, false);
+          camera.getWorldPosition(currentPosition);
+          if (i > 0) {
+            totalDistance += currentPosition.distanceTo(previousPosition);
+          }
+          times.push(time);
+          distances.push(totalDistance);
+          previousPosition.copy(currentPosition);
+          if(i%48===0)await yieldMainThread();
+        }
+        action.reset().play();
+        // User reference: 88% of the unchanged spatial camera path (about frame 159.33).
+        const arrivalProgress = .88;
+        const arrivalTime = distanceToTime(arrivalProgress);
+        if (totalDistance <= 0) {
+          if (loading) {
+            loading.textContent =
+              'ERREUR : LA CAMÃ‰RA NE SE DÃ‰PLACE PAS';
+          }
+          return;
+        }
+        // Convertit une progression spatiale uniforme
+        // en temps d'animation Blender.
+        function distanceToTime(progress: number) {
+          const targetDistance = progress * totalDistance;
+          let low = 0;
+          let high = distances.length - 1;
+          while (low < high) {
+            const middle = Math.floor((low + high) / 2);
+            if (distances[middle] < targetDistance) {
+              low = middle + 1;
+            } else {
+              high = middle;
+            }
+          }
+          const index = Math.max(1, low);
+          const d0 = distances[index - 1];
+          const d1 = distances[index];
+          const fraction =
+            d1 === d0
+              ? 0
+              : (targetDistance - d0) / (d1 - d0);
+          return THREE.MathUtils.lerp(
+            times[index - 1],
+            times[index],
+            fraction
+          );
+        }
+        let targetProgress = 0;
+        let currentProgress = 0;
+        const arrival = createArrivalSequence({ arrivalTime, endTime: duration, actorStart, actorEnd });
+        const hyperspace = createHyperspaceTransition(renderer, container);
+        let phase = 'city';
+        let entered = false;
+        const entry = document.querySelector<HTMLElement>('#city-entry')!;
+        const startHint = document.querySelector<HTMLElement>('#city-scroll-start')!;
+        const aboutHint = document.querySelector<HTMLElement>('#city-about-hint')!;
+        document.querySelector<HTMLButtonElement>('#city-enter')!.addEventListener('click', () => {
+          if (entered) return;
+          entered=true;entry.hidden=true;startHint.hidden=false;
+          clock.start();requestAnimationFrame(animate);
+        });
+        const hud = document.querySelector<HTMLElement>('.city-hud');
+        let returning: {time:number}|null=null;
+        let returnGate=false,stationReturned=false;
+        const projects = createSpaceExperience(renderer, () => {
+          if(returning)return;
+          projects.hide();hyperspace.start();returning={time:0};phase='return-hyperspace';
+          if(hud)hud.style.opacity='0';
+        }, {environment:scene.environment});
+        const scrollSensitivity = 0.00035;
+        function scrollBy(delta: number) {
+          if(!entered||returning)return;
+          if(phase==='projects'){projects.scroll(delta);return;}
+          if(returnGate&&delta>0&&targetProgress>=arrivalProgress-.002){returnGate=false;arrival.reset();}
+          if(arrival.locked)return;
+          targetProgress=THREE.MathUtils.clamp(targetProgress+delta*scrollSensitivity,0,arrivalProgress);
+        }
+        window.addEventListener('wheel',(event)=>{
+          event.preventDefault();
+          scrollBy(wheelAdvance(event,innerHeight));
+        },{passive:false});
+        window.addEventListener('keydown',(event)=>{
+          if(!entered||!['ArrowDown','ArrowUp','PageDown','PageUp'].includes(event.key))return;
+          event.preventDefault();scrollBy(keyAdvance(event.key));
+        });
+        let touchY: number|null=null;
+        window.addEventListener('touchstart',event=>{touchY=event.touches[0].clientY;},{passive:true});
+        window.addEventListener('touchmove',event=>{
+          if(touchY===null||!entered)return;event.preventDefault();const y=event.touches[0].clientY;scrollBy(touchAdvance(touchY,y));touchY=y;
+        },{passive:false});
+        window.addEventListener('touchend',()=>{touchY=null;},{passive:true});
+        loadingState.stage('Préparation de l’expérience — encore un instant…', 55);
+        setCameraTime(0);setStationTime(actorStart);secondaryMixer.update(0);assetEffects.update(0);
+        // The city is the only prerequisite for entry. Future scenes are prepared
+        // after entry is available, rather than blocking it on shader polling.
+        await rendering.prepare(camera, async (step) => {
+          setCameraTime(distanceToTime([0, .012, .035, 0][step]));
+          camera.updateWorldMatrix(true, false);
+        }, (message, progress) => loadingState.stage(message, progress));
+        console.info('City startup timing',{modelAndDecodeMs:Math.round(modelReady-startupStart),preparationMs:Math.round(performance.now()-modelReady),totalMs:Math.round(performance.now()-startupStart)});
+        traceCityStage('entry-ready', { openingViews:rendering.stats.openingViews, gpuWaitMs:rendering.stats.openingGpuWaitMs });
+        loadingState.complete();
+        if (loading) loading.remove();
+        entry.hidden=false;
+        const clock = new THREE.Clock();
+        let nextScenesReady=false, synthRequested=false;let spacePreparation:Promise<void>|null=null;
+        const quality=createFrameBudget(renderer.getPixelRatio(),ratio=>{renderer.setPixelRatio(ratio);rendering.resize(innerWidth,innerHeight);projects.resize();hyperspace.resize();});
+        function animate() {
+          if (loadingState.failed) return;
+          requestAnimationFrame(animate);
+          const rawDelta=clock.getDelta();
+          if(document.hidden)return;
+          const delta = Math.min(rawDelta, 0.05);
+          quality.sample(rawDelta,entered&&!returning&&(phase==='city'||phase==='projects'));
+          if(returning){
+            returning.time+=delta;
+            const reverse=sampleReturnBridge(returning.time);
+            const p=reverse.ascentProgress,smooth=p*p*(3-2*p);
+            setCameraTime(arrivalTime+(duration-arrivalTime)*smooth);setStationTime(actorEnd);
+            secondaryMixer.update(delta);assetEffects.update(secondaryMixer.time);rendering.update(secondaryMixer.time);
+            if(reverse.phase==='return-hyperspace')hyperspace.render(delta,reverse.warpTime,reverse.projectBlend,projects,rendering);
+            else if(reverse.phase==='return-ascent')hyperspace.renderAscent(delta,p,rendering);
+            else{
+              hyperspace.finish();projects.reset();arrival.reset();returnGate=true;stationReturned=true;returning=null;
+              targetProgress=arrivalProgress;currentProgress=arrivalProgress;phase='city';
+              if(hud)hud.style.opacity='1';rendering.render();
+            }
+            document.querySelector<HTMLElement>('#city-experience')!.dataset.phase=returning?reverse.phase:'city';
+            return;
+          }
+          if (phase === 'projects') { projects.render(clock.elapsedTime); return; }
+          // Inertie indÃ©pendante du nombre d'images/seconde.
+          const smoothing = 1 - Math.exp(-11 * delta);
+          currentProgress = THREE.MathUtils.lerp(
+            currentProgress,
+            targetProgress,
+            smoothing
+          );
+          if(entered&&!synthRequested&&currentProgress>.04){
+            synthRequested=true;
+            assetEffects.prepareDeferred().catch(error=>console.error('Préparation des traînées du synthétiseur :',error));
+          }
+          const animationTime = distanceToTime(currentProgress);
+          if(returnGate&&currentProgress<arrivalProgress-.02)returnGate=false;
+          const view = returnGate?{phase:'city',cameraTime:animationTime,actorTime:actorEnd,warpTime:0,blend:0,ascentProgress:0}:arrival.update(delta, animationTime);
+          setCameraTime(view.cameraTime);
+          if(stationReturned&&(currentProgress<.72||view.phase==='interaction'))stationReturned=false;
+          setStationTime(stationReturned&&view.phase==='city'?actorEnd:view.actorTime);
+          secondaryMixer.update(delta);
+          assetEffects.update(secondaryMixer.time);
+          rendering.setShadowActivity(view.phase==='interaction');
+          const dialogue=document.querySelector<HTMLElement>('#sparky-dialogue')!;
+          const speaking=view.phase==='interaction'||view.phase==='ascent';
+          dialogue.hidden=!speaking;
+          if(speaking){const second=view.phase==='ascent'||(view.actorTime-actorStart)/(actorEnd-actorStart)>.43;const line=second?'Direction l’espace. Une petite semaine de vacances…\nEnfin, pour moi. Toi, t’as encore les projets à regarder.':'Bon… tu comptais visiter chaque immeuble ?\nLaisse-moi gérer la suite.';const paragraph=dialogue.querySelector('p')!;if(paragraph.textContent!==line)paragraph.textContent=line;}
+          rendering.update(secondaryMixer.time);
+          startHint.hidden=!entered||currentProgress>.025||arrival.locked;
+          aboutHint.hidden=!entered||currentProgress<.19||currentProgress>.40||arrival.locked;
+          if (progressLabel) {
+            progressLabel.textContent =
+              `${Math.round((arrival.locked ? distances[Math.min(sampleCount, Math.round(view.cameraTime / duration * sampleCount))] / totalDistance : currentProgress) * 100)} %`;
+          }
+          try {
+            if(view.phase==='interaction'&&!nextScenesReady){nextScenesReady=true;projects.prepare().catch(error=>console.error('Préparation spatiale :',error));hyperspace.prepare();}
+            const warpActive = view.phase === 'ascent' || view.phase === 'hyperspace' || view.phase === 'project-transition';
+            if (warpActive && phase !== 'ascent' && phase !== 'hyperspace' && phase !== 'project-transition') { hyperspace.start(); if (hud) hud.style.opacity = '0'; }
+            if(view.phase==='project-transition'&&phase!=='project-transition')projects.beginArrival();
+            if(view.phase==='projects'&&!projects.stats.prepared){hyperspace.render(delta,6,0,projects,rendering);return;}
+            if (view.phase === 'projects' && phase !== 'projects') { hyperspace.finish(); projects.show(); }
+            phase = view.phase;
+            document.querySelector<HTMLElement>('#city-experience')!.dataset.phase = phase;
+            if (phase === 'projects') projects.render(clock.elapsedTime);
+            else if (view.phase==='ascent') hyperspace.renderAscent(delta,view.ascentProgress,rendering);
+            else if (warpActive) hyperspace.render(delta, view.warpTime, view.blend, projects,rendering);
+            else rendering.render();
+          }
+          catch (error) { loadingState.fail(error); }
+        }
+        // Keep the warmed opening frame still until the entry click.
+        // The title and pointer have the UI/GPU budget while entry is visible.
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          rendering.resize(window.innerWidth, window.innerHeight);
+          hyperspace.resize(); projects.resize();
+          if (!entered) rendering.render();
+        });
+        } catch (error) {
+          loadingState.fail(error);
+        }
+      },
+      (event) => loadingState.download(event),
+      (error) => {
+        loadingState.fail(error);
+      }
+    );
+  }
+  const uiPreview = import.meta.env.DEV && new URLSearchParams(location.search).has('preview-loading');
+  if(uiPreview){
+    loadingState.stage('Préparation de l’expérience…',48);
+    if(new URLSearchParams(location.search).get('preview-loading')==='entry'){
+      loadingState.complete();loading?.remove();document.querySelector<HTMLElement>('#city-entry')!.hidden=false;
+    }
+  }
+  try { if(!uiPreview)startCity().catch(error => loadingState.fail(error)); }
+  catch (error) { loadingState.fail(error); }
+</script>
