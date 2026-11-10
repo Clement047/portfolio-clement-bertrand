@@ -1,0 +1,373 @@
+﻿---
+import '../../styles/global.css';
+import { projects } from '../../data/projects.js';
+
+export function getStaticPaths() {
+  return projects.filter(project => !['sull', 'sparky', 'reflections', 'ebene'].includes(project.slug)).map(project => ({
+    params: { slug: project.slug },
+    props: { project }
+  }));
+}
+
+const { project } = Astro.props;
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{project.title} — Clément Bertrand</title>
+    <meta name="description" content={project.description} />
+  </head>
+
+  <body
+    class="project-page"
+    style={`--accent:${project.color};--accent-rgb:${project.rgb};`}
+  >
+    <div class="project-atmosphere" aria-hidden="true">
+      <div class="project-ring"></div>
+    </div>
+
+    <a href="/" style="position:fixed;bottom:26px;right:30px;z-index:100;padding:12px 17px;border:1px solid #7164ac66;background:#090b18e8;color:#d8d4ed;font:10px Arial;letter-spacing:.16em;text-decoration:none">VERSION 3D ↗</a>
+    <main class="project-content">
+      <header class="project-header">
+        <a href="/portfolio-2d/#project-orbit" class="back-link">
+          <span aria-hidden="true">←</span>
+          RETOUR AUX PROJETS
+        </a>
+
+        <span class="project-counter">
+          PROJET {project.number} / 07
+        </span>
+      </header>
+
+      <section class="project-hero">
+        <div class="project-eyebrow">
+          <span class="project-dot"></span>
+          EXPLORATION CRÉATIVE
+        </div>
+
+        <div class="project-glass">
+          <div class="glass-reflection"></div>
+          <div class="glass-inner-border"></div>
+          <h1>{project.title}</h1>
+        </div>
+
+        <div class="project-intro">
+          <span class="project-label">
+            {project.number} — {project.title}
+          </span>
+
+          <p>{project.description}</p>
+
+          <div class="project-skills">
+            {project.skills.map(skill => (
+              <span class="project-skill">
+                <i aria-hidden="true"></i>
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer class="project-footer">
+        <span>CLÉMENT BERTRAND — PORTFOLIO</span>
+        <span>UNE EXPÉRIENCE À CONSTRUIRE</span>
+      </footer>
+    </main>
+  </body>
+</html>
+
+<style>
+  @font-face {
+    font-family: 'Le Murmure';
+    src: url('/project-orbit/assets/fonts/le-murmure.otf')
+      format('opentype');
+    font-display: swap;
+  }
+
+  :global(body.project-page) {
+    margin: 0;
+    min-height: 100vh;
+    background: #03040c !important;
+    color: #f1efff;
+    overflow-x: hidden;
+    font-family: 'Lexend', sans-serif;
+  }
+
+  .project-atmosphere {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+
+    background:
+      radial-gradient(
+        ellipse 55% 65% at 50% 45%,
+        rgba(var(--accent-rgb), .22),
+        transparent 78%
+      ),
+      radial-gradient(
+        ellipse 40% 55% at 15% 75%,
+        rgba(42, 75, 165, .18),
+        transparent 80%
+      ),
+      radial-gradient(
+        ellipse 40% 55% at 85% 20%,
+        rgba(112, 54, 180, .18),
+        transparent 80%
+      ),
+      #03040c;
+  }
+
+  .project-ring {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    width: 115vw;
+    height: 46vw;
+    min-height: 320px;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--accent-rgb), .22);
+    box-shadow: 0 0 70px rgba(var(--accent-rgb), .08);
+    transform: translate(-50%, -50%) rotate(-18deg);
+    animation: ring-float 18s ease-in-out infinite alternate;
+  }
+
+  .project-content {
+    position: relative;
+    z-index: 1;
+    min-height: 100svh;
+    width: min(1500px, 100%);
+    margin: auto;
+    padding: 32px clamp(22px, 5vw, 90px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .project-header,
+  .project-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .back-link,
+  .project-counter,
+  .project-footer,
+  .project-label,
+  .project-eyebrow {
+    font-size: 10px;
+    letter-spacing: .22em;
+  }
+
+  .back-link {
+    display: inline-flex;
+    gap: 15px;
+    align-items: center;
+    color: #c5c3da;
+    transition: color .3s ease;
+  }
+
+  .back-link:hover {
+    color: white;
+  }
+
+  .project-counter,
+  .project-label {
+    color: var(--accent);
+  }
+
+  .project-hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 65px 0;
+  }
+
+  .project-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #aaa6c3;
+    margin-bottom: 30px;
+  }
+
+  .project-dot,
+  .project-skill i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 15px var(--accent);
+    flex-shrink: 0;
+  }
+
+  .project-glass {
+    width: min(100%, 1100px);
+    min-height: clamp(250px, 37vw, 490px);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: 18px;
+
+    background:
+      radial-gradient(
+        ellipse 85% 95% at 50% 40%,
+        rgba(var(--accent-rgb), .25),
+        transparent 80%
+      ),
+      linear-gradient(
+        140deg,
+        rgba(165, 180, 255, .14),
+        rgba(13, 15, 35, .75) 42%,
+        rgba(var(--accent-rgb), .18)
+      );
+
+    border: 1px solid rgba(var(--accent-rgb), .48);
+
+    box-shadow:
+      inset 0 1px 2px rgba(255,255,255,.32),
+      inset 0 -15px 35px rgba(0,0,0,.25),
+      0 35px 100px rgba(0,0,0,.35),
+      0 0 65px rgba(var(--accent-rgb), .09);
+
+    backdrop-filter: blur(25px) saturate(150%);
+  }
+
+  .glass-reflection {
+    position: absolute;
+    inset: -60%;
+    background:
+      linear-gradient(
+        110deg,
+        transparent 35%,
+        rgba(185,210,255,.09) 44%,
+        rgba(255,255,255,.18) 47%,
+        rgba(160,130,255,.09) 50%,
+        transparent 60%
+      );
+    transform: translateX(-35%) rotate(8deg);
+    animation: glass-reflection 13s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  .glass-inner-border {
+    position: absolute;
+    inset: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.08);
+    pointer-events: none;
+  }
+
+  .project-glass h1 {
+    position: relative;
+    z-index: 2;
+    max-width: 94%;
+    margin: 0;
+    text-align: center;
+    font-family: 'Le Murmure', sans-serif;
+    font-weight: normal;
+    font-size: clamp(70px, 11vw, 185px);
+    line-height: .95;
+    letter-spacing: .015em;
+    overflow-wrap: anywhere;
+    color: #f1eee9;
+    text-shadow:
+      0 0 28px rgba(255,255,255,.16),
+      0 0 75px rgba(var(--accent-rgb), .25);
+  }
+
+  .project-intro {
+    width: min(850px, 100%);
+    margin-top: 40px;
+    text-align: center;
+  }
+
+  .project-intro p {
+    margin: 20px auto 26px;
+    max-width: 750px;
+    font-size: clamp(13px, 1.1vw, 16px);
+    font-weight: 300;
+    line-height: 1.85;
+    color: #ddd9eb;
+  }
+
+  .project-skills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .project-skill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 19px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 300;
+    background:
+      linear-gradient(
+        150deg,
+        rgba(255,255,255,.13),
+        rgba(var(--accent-rgb),.09) 55%,
+        rgba(8,10,24,.52)
+      );
+    border: 1px solid rgba(var(--accent-rgb),.48);
+    box-shadow:
+      inset 0 1px 2px rgba(255,255,255,.22),
+      0 7px 24px rgba(0,0,0,.2);
+    backdrop-filter: blur(20px);
+  }
+
+  .project-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding-top: 30px;
+    color: #79768f;
+  }
+
+  @keyframes ring-float {
+    to {
+      transform: translate(-50%, -50%) rotate(-13deg) scale(1.06);
+    }
+  }
+
+  @keyframes glass-reflection {
+    to {
+      transform: translateX(35%) rotate(8deg);
+    }
+  }
+
+  @media (max-width: 700px) {
+    .project-glass {
+      min-height: 300px;
+    }
+
+    .project-glass h1 {
+      font-size: clamp(55px, 13vw, 100px);
+    }
+
+    .project-footer {
+      font-size: 8px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-ring,
+    .glass-reflection {
+      animation: none;
+    }
+  }
+</style>
