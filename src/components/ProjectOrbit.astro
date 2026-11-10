@@ -1,0 +1,542 @@
+﻿---
+interface Props { id?: string; assetBase?: string; }
+const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
+---
+<section id={id} class="project-orbit" data-project-orbit data-asset-base={assetBase} aria-label="Projets SULL, Sparky et ÉBÈNE">
+  <div class="project-orbit__viewport">
+    <canvas data-orbit-canvas aria-label="Cartes vidéo sur une orbite 3D"></canvas>
+    <p class="project-orbit__status" data-orbit-status role="status">Chargement des projets…</p>
+    <button class="project-orbit__resume" data-orbit-resume hidden>Lire les vidéos</button>
+    <aside class="project-orbit__info" data-orbit-info aria-live="off">
+      <span class="project-orbit__info-index" data-orbit-info-index></span>
+      <p class="project-orbit__info-description" data-orbit-info-description></p>
+      <div class="project-orbit__info-skills" data-orbit-info-skills></div>
+    </aside>
+    <p class="project-orbit__hint">Faites défiler pour découvrir les projets</p>
+  </div>
+</section>
+<script>
+  import { initProjectOrbit } from '../scripts/initProjectOrbit.js';
+  const mounted = new Map<HTMLElement, () => void>();
+  function mountOrbits() {
+    document.querySelectorAll<HTMLElement>('[data-project-orbit]').forEach(root => {
+      if (mounted.has(root)) return;
+      const dispose = initProjectOrbit(root);
+      mounted.set(root, dispose);
+    });
+  }
+  function unmountOrbits() { mounted.forEach(dispose => dispose()); mounted.clear(); }
+  mountOrbits();
+  document.addEventListener('astro:page-load', mountOrbits);
+  document.addEventListener('astro:before-swap', unmountOrbits);
+  window.addEventListener('pagehide', unmountOrbits);
+</script>
+<style>
+  .project-orbit { position: relative; height: 750svh; isolation: isolate; }
+  .project-orbit__viewport { position: sticky; top: 0; width: 100%; height: 100svh; overflow: clip; touch-action: pan-y; }
+  [data-orbit-canvas] { display: block; width: 100%; height: 100%; pointer-events: none; }
+  .project-orbit__status { position: absolute; top: 50%; width: 100%; text-align: center; color: #c2c6d4; font: 12px system-ui; }
+  .project-orbit__resume { position: absolute; left: 50%; top: 60%; transform: translateX(-50%); color: #e0e2eb; background: #101222d9; border: 1px solid #697080; padding: 12px 20px; border-radius: 24px; }
+  .project-orbit__hint { position: absolute; bottom: 35px; width: 100%; text-align: center; color: #9299ae; font: 11px system-ui; pointer-events: none; }
+  [hidden] { display: none !important; }
+
+  /* INFORMATIONS DYNAMIQUES DES PROJETS */
+
+  .project-orbit__info {
+    position: absolute;
+    left: clamp(30px, 5vw, 100px);
+    top: 50%;
+    width: min(330px, 24vw);
+    transform: translateY(calc(-50% + 22px));
+    z-index: 5;
+    pointer-events: none;
+
+    opacity: 0;
+    filter: blur(9px);
+
+    transition:
+      opacity 0.55s ease,
+      filter 0.55s ease,
+      transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+
+    --project-accent: #a69cff;
+  }
+
+  .project-orbit__info.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(-50%);
+  }
+
+  .project-orbit__info-index {
+    display: block;
+    margin-bottom: 24px;
+    font-family: 'Lexend', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--project-accent);
+  }
+
+  .project-orbit__info-description {
+    margin: 0;
+    font-family: 'Lexend', sans-serif;
+    font-size: clamp(12px, 0.95vw, 15px);
+    font-weight: 300;
+    line-height: 1.9;
+    color: #e3dff3;
+  }
+
+  .project-orbit__info-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 25px;
+  }
+
+  :global(.project-orbit__skill) {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 11px;
+
+    font-family: 'Lexend', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+
+    color: #e8e5f5;
+    background: rgba(20, 18, 37, 0.45);
+    border: 1px solid color-mix(
+      in srgb,
+      var(--project-accent) 45%,
+      transparent
+    );
+
+    border-radius: 3px;
+    backdrop-filter: blur(10px);
+  }
+
+  @media (max-width: 800px) {
+    .project-orbit__info {
+      top: auto;
+      bottom: 80px;
+      left: 7%;
+      width: 86%;
+      transform: translateY(20px);
+    }
+
+    .project-orbit__info.is-visible {
+      transform: translateY(0);
+    }
+
+    .project-orbit__info-description {
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .project-orbit__info-skills {
+      margin-top: 14px;
+    }
+
+    :global(.project-orbit__skill) {
+      padding: 6px 8px;
+      font-size: 9px;
+    }
+  }
+
+
+  
+  /* ===== INFORMATIONS SOUS LES CARTES ===== */
+
+  .project-orbit__info {
+    position: absolute;
+    z-index: 5;
+
+    left: 50% !important;
+    top: auto !important;
+    bottom: clamp(65px, 9vh, 110px) !important;
+
+    width: min(680px, 85vw) !important;
+    text-align: center !important;
+
+    opacity: 0;
+    filter: blur(8px);
+
+    transform: translate(-50%, 18px) !important;
+
+    transition:
+      opacity 0.55s ease,
+      filter 0.55s ease,
+      transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+
+    pointer-events: none;
+  }
+
+  .project-orbit__info.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(-50%, 0) !important;
+  }
+
+  .project-orbit__info-index {
+    display: block;
+    margin-bottom: 12px !important;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+  }
+
+  .project-orbit__info-description {
+    font-family: 'Lexend', sans-serif;
+    font-size: clamp(12px, 0.85vw, 14px) !important;
+    font-weight: 300;
+    line-height: 1.75 !important;
+  }
+
+  .project-orbit__info-skills {
+    display: flex;
+    justify-content: center !important;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px !important;
+  }
+
+  .project-orbit__hint {
+    bottom: 20px !important;
+  }
+
+  @media (max-width: 800px) {
+    .project-orbit__info {
+      bottom: 85px !important;
+      width: 88vw !important;
+    }
+  }
+
+
+  
+  /* ===== GLASS CAPSULES V3 ===== */
+
+  .project-orbit .project-orbit__info-skills {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 23px;
+  }
+
+  /*
+   * :global() est indispensable :
+   * les compétences sont créées dynamiquement
+   * par initProjectOrbit.js.
+   */
+
+  .project-orbit :global(.project-orbit__skill) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    min-height: 42px;
+    padding: 11px 19px;
+
+    font-family: 'Lexend', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.055em;
+    line-height: 1.2;
+
+    color: rgba(245, 242, 255, 0.94);
+
+    border-radius: 100px;
+
+    border: 1px solid
+      color-mix(
+        in srgb,
+        var(--project-accent, #8b83ff) 55%,
+        rgba(255, 255, 255, 0.32)
+      );
+
+    background:
+      radial-gradient(
+        ellipse 90% 65% at 50% -10%,
+        rgba(255, 255, 255, 0.20),
+        transparent 85%
+      ),
+      radial-gradient(
+        ellipse 70% 100% at 0% 100%,
+        color-mix(
+          in srgb,
+          var(--project-accent, #8b83ff) 22%,
+          transparent
+        ),
+        transparent 95%
+      ),
+      linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.105) 0%,
+        rgba(255, 255, 255, 0.018) 38%,
+        rgba(6, 8, 24, 0.28) 70%,
+        rgba(255, 255, 255, 0.055) 100%
+      );
+
+    backdrop-filter: blur(24px) saturate(170%);
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+
+    box-shadow:
+      inset 0 2px 2px rgba(255, 255, 255, 0.23),
+      inset 0 -2px 3px rgba(255, 255, 255, 0.075),
+      inset 2px 0 4px rgba(255, 255, 255, 0.055),
+      inset -2px 0 4px rgba(255, 255, 255, 0.035),
+      0 9px 28px rgba(0, 0, 0, 0.24),
+      0 0 20px
+        color-mix(
+          in srgb,
+          var(--project-accent, #8b83ff) 13%,
+          transparent
+        );
+
+    white-space: nowrap;
+
+    transition:
+      border-color 0.4s ease,
+      box-shadow 0.4s ease,
+      background 0.4s ease;
+  }
+
+  /* Point lumineux intégré au verre */
+
+  .project-orbit :global(.project-orbit__skill)::before {
+    content: '';
+
+    position: relative;
+    z-index: 2;
+
+    width: 5px;
+    height: 5px;
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: var(--project-accent, #8b83ff);
+
+    box-shadow:
+      0 0 5px var(--project-accent, #8b83ff),
+      0 0 13px var(--project-accent, #8b83ff),
+      0 0 24px
+        color-mix(
+          in srgb,
+          var(--project-accent, #8b83ff) 65%,
+          transparent
+        );
+  }
+
+  /* Couche de texture et reflets iridescents */
+
+  .project-orbit :global(.project-orbit__skill)::after {
+    content: '';
+
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    border-radius: inherit;
+    pointer-events: none;
+
+    background:
+      linear-gradient(
+        115deg,
+        transparent 8%,
+        rgba(255, 255, 255, 0.17) 19%,
+        rgba(125, 170, 255, 0.09) 27%,
+        transparent 39%,
+        rgba(194, 125, 255, 0.08) 62%,
+        transparent 79%
+      ),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+
+    opacity: 0.65;
+    mix-blend-mode: screen;
+  }
+
+  /* Apparition progressive des capsules */
+
+  .project-orbit__info.is-visible
+  :global(.project-orbit__skill) {
+    animation: glass-skill-appear 0.65s both;
+  }
+
+  .project-orbit__info.is-visible
+  :global(.project-orbit__skill):nth-child(2) {
+    animation-delay: 0.06s;
+  }
+
+  .project-orbit__info.is-visible
+  :global(.project-orbit__skill):nth-child(3) {
+    animation-delay: 0.12s;
+  }
+
+  .project-orbit__info.is-visible
+  :global(.project-orbit__skill):nth-child(4) {
+    animation-delay: 0.18s;
+  }
+
+  @keyframes glass-skill-appear {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+      filter: blur(5px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  @media (max-width: 800px) {
+    .project-orbit .project-orbit__info-skills {
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .project-orbit :global(.project-orbit__skill) {
+      min-height: 34px;
+      padding: 8px 12px;
+      font-size: 9px;
+      gap: 7px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-orbit__info.is-visible
+    :global(.project-orbit__skill) {
+      animation: none;
+    }
+  }
+
+  /* ===== END GLASS CAPSULES V3 ===== */
+
+
+/* ===== ORBIT OBSERVATORY START ===== */
+
+/* Fond uniquement dans la zone des projets */
+.project-orbit__viewport {
+  position: sticky;
+  isolation: isolate;
+  background: transparent !important;
+}
+
+/* Halo volumétrique derrière les cartes */
+.project-orbit__viewport::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      ellipse 40% 40% at 50% 48%,
+      rgba(85, 105, 235, 0.19),
+      transparent 75%
+    ),
+    radial-gradient(
+      ellipse 30% 38% at 22% 64%,
+      rgba(40, 80, 170, 0.16),
+      transparent 80%
+    );
+
+  filter: blur(35px);
+  animation: orbit-ambient-drift 18s ease-in-out infinite alternate;
+}
+
+/* Grand anneau spatial */
+.project-orbit__viewport::after {
+  content: "";
+  position: absolute;
+
+  width: 105%;
+  height: 52%;
+
+  left: 50%;
+  top: 44%;
+
+  border-radius: 50%;
+  border: 1px solid rgba(125, 155, 255, 0.20);
+
+  box-shadow:
+    0 0 20px rgba(85, 115, 255, 0.11),
+    inset 0 0 25px rgba(90, 55, 185, 0.08),
+    0 0 65px rgba(65, 90, 195, 0.06);
+
+  transform:
+    translate(-50%, -50%)
+    rotate(-17deg);
+
+  z-index: 0;
+  pointer-events: none;
+
+  animation: orbit-ring-breathe 15s ease-in-out infinite alternate;
+}
+
+/* Le canvas et les interfaces restent au premier plan */
+.project-orbit__viewport > canvas,
+.project-orbit__viewport > [data-orbit-canvas] {
+  position: sticky;
+  z-index: 1;
+}
+
+@keyframes orbit-ambient-drift {
+  from {
+    opacity: 0.65;
+    transform: translateX(-2%) scale(1);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(2%) scale(1.08);
+  }
+}
+
+@keyframes orbit-ring-breathe {
+  from {
+    opacity: 0.50;
+    transform: translate(-50%, -50%) rotate(-17deg) scale(0.98);
+  }
+
+  to {
+    opacity: 0.90;
+    transform: translate(-50%, -50%) rotate(-13deg) scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-orbit__viewport::before,
+  .project-orbit__viewport::after {
+    animation: none;
+  }
+}
+
+/* ===== ORBIT OBSERVATORY END ===== */
+
+  /* ===== CLICKABLE PROJECT CARDS ===== */
+  [data-orbit-canvas] {
+    pointer-events: auto !important;
+    touch-action: pan-y;
+  }
+  /* ===== END CLICKABLE PROJECT CARDS ===== */
+</style>
+
+
+
+
+
+
+
+
+
+
+
