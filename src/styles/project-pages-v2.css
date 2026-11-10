@@ -1,0 +1,69 @@
+/* Scoped to the November Figma pages; the existing SULL page is unchanged. */
+@font-face{font-family:'Le Murmure';src:url('/fonts/les-murmures/le-murmure.otf') format('opentype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Mabry Pro';src:url('/fonts/project-pages/mabry-pro-light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:'Lexend';src:url('/fonts/project-pages/lexend-regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Jersey 10';src:url('/fonts/project-pages/jersey-10.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Babylonica';src:url('/fonts/project-pages/babylonica-Babylonica-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Artifika';src:url('/fonts/project-pages/artifika-Artifika-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Baskervville';src:url('/fonts/project-pages/baskervville-Baskervville-Italic[wght].ttf') format('truetype');font-weight:400 700;font-style:italic;font-display:swap}
+*{box-sizing:border-box}html{scroll-behavior:auto}body{margin:0;background:var(--project-background);color:#fff;overflow-x:hidden}p{margin:0}img{display:block;max-width:none}a{color:inherit;text-decoration:none}
+.v2-shell{width:100%;max-width:1440px;margin:0 auto;position:relative;overflow:hidden}
+.v2-artboard{position:absolute;left:0;top:0;transform-origin:top left;overflow:hidden}
+.v2-artboard>div{overflow:hidden}
+.sr-only,.config-status{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.ebene-configurator{position:absolute;left:115px;top:2779px;width:1210px;height:1014.635px;overflow:hidden;background:#f7e6c1;color:#4a2616}
+.config-canvas{position:relative;width:1728px;height:1449px;transform:scale(.70023148148);transform-origin:top left}
+.config-state{position:absolute;inset:0}
+.config-state[hidden]{display:none}
+.config-hotspot{position:absolute;z-index:2;padding:0;margin:0;border:0;background:transparent;cursor:pointer;border-radius:8px}
+.config-hotspot:focus-visible{outline:3px solid #4a2616;outline-offset:6px}
+.config-hotspot:disabled{cursor:default}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+
+.v2-artboard [style*="Le Murmure"][style*="height:100px"]{white-space:nowrap}
+
+/* Text overflow corrections, measured with the final project fonts. */
+/* Reflections: preserve the Figma columns, reserve actual text height. */
+[data-node-id="723:1410"]{top:8641.78px!important;height:558px!important}
+[data-node-id="723:1411"]{top:7188.78px!important;height:1326px!important}
+[data-node-id="723:1413"]{top:8562.78px!important}
+[data-node-id="723:1415"]{top:2890px!important}
+[data-node-id="723:1416"]{top:6192px!important}
+[data-node-id="723:1417"]{top:6467.4px!important}
+[data-node-id="723:1418"]{top:4471px!important}
+[data-node-id="723:1420"]{top:3928px!important}
+[data-node-id="723:1422"]{top:4051px!important;height:372px!important}
+[data-node-id="723:1424"]{top:3844px!important}
+[data-node-id="723:1426"]{top:3906.28px!important}
+[data-node-id="723:1427"]{height:883px!important}
+[data-node-id="723:1431"]{top:5195px!important}
+[data-node-id="723:1432"]{top:5887px!important}
+[data-node-id="723:1433"]{top:5951px!important}
+[data-node-id="723:1434"]{top:5977px!important}
+[data-node-id="723:1435"]{top:6165px!important;height:975px!important}
+/* Ebene: preserve the Figma columns, reserve actual text height. */
+[data-node-id="723:1465"]{top:6873px!important}
+[data-node-id="723:1468"]{height:279px!important}
+[data-node-id="723:1469"]{height:604px!important}
+[data-node-id="723:1470"]{top:6996px!important;height:233px!important}
+[data-node-id="723:1474"]{top:6788px!important}
+[data-node-id="723:1478"]{top:6851.28px!important}
+[data-node-id="723:1479"]{top:9880.61px!important}
+[data-node-id="723:1546"]{top:4795px!important}
+[data-node-id="723:1547"]{top:5696px!important}
+[data-node-id="723:1555"]{top:7277px!important}
+[data-node-id="723:1557"]{top:8242px!important}
+[data-node-id="723:1559"]{top:9023.12px!important}
+[data-node-id="723:1560"]{top:9045.08px!important}
+[data-node-id="723:1561"]{top:9023.12px!important}
+/* Sparky: preserve the Figma columns, reserve actual text height. */
+[data-node-id="723:1371"]{top:4474px!important}
+[data-node-id="723:1375"]{top:6674px!important}
+[data-node-id="723:1376"]{top:6669.17px!important}
+[data-node-id="723:1378"]{top:5453.87px!important}
+[data-node-id="723:1379"]{top:5458.77px!important}
+[data-node-id="723:1390"]{top:6265px!important}
+[data-node-id="723:1393"]{height:511px!important}
+[data-node-id="723:1394"]{top:6388px!important;height:233px!important}
+[data-node-id="723:1398"]{top:6180px!important}
+[data-node-id="723:1402"]{top:6242.28px!important}

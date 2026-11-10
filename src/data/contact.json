@@ -1,0 +1,23 @@
+[
+  {
+    "id": "email",
+    "name": "E-mail",
+    "label": "clementbertrand047@gmail.com",
+    "href": "mailto:clementbertrand047@gmail.com",
+    "icon": "/images/contact-final/ad75f2d1-ef65-487c-b9bc-0debc74fb2ce.png"
+  },
+  {
+    "id": "instagram",
+    "name": "Instagram",
+    "label": "clement.brtrd_",
+    "href": "https://www.instagram.com/clement.brtrd_/",
+    "icon": "/images/contact-final/85bf9402-826b-4ed6-9a8d-52308f5d889c.png"
+  },
+  {
+    "id": "linkedin",
+    "name": "LinkedIn",
+    "label": "linkedin.com/in/cbpro",
+    "href": "https://www.linkedin.com/in/cbpro/",
+    "icon": "/images/contact-final/7fc0d2c5-32a5-46e0-81fd-c6d60e6ce226.png"
+  }
+]

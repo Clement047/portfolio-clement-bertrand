@@ -1,0 +1,9 @@
+---
+import '../styles/project-pages.css';
+const { title, background } = Astro.props;
+---
+<!doctype html><html lang="fr"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="description" content={title+' — Projet de Clément Bertrand'}/><title>{title} — Clément Bertrand</title><link rel="icon" href="/favicon.svg"/><link rel="preload" href="/fonts/les-murmures/le-murmure.otf" as="font" type="font/otf" crossorigin/><link rel="preload" href="/fonts/project-pages/lexend-regular.ttf" as="font" type="font/ttf" crossorigin/></head><body style={`--project-background:${background}`}><main class="project-shell"><h1 class="sr-only">{title}</h1><slot/></main></body></html>
+<script>
+const shell=document.querySelector<HTMLElement>('.project-shell');
+if(shell){const artboards=[...shell.querySelectorAll<HTMLElement>('.project-artboard')];const fit=()=>{const mobile=matchMedia('(max-width:700px)').matches;const active=artboards.find(a=>a.classList.contains(mobile?'mobile':'desktop'));if(!active)return;const width=Number(active.dataset.designWidth),height=Number(active.dataset.designHeight),scale=shell.clientWidth/width;active.style.transform=`scale(${scale})`;shell.style.height=`${height*scale}px`;};new ResizeObserver(fit).observe(shell);fit();}
+</script>

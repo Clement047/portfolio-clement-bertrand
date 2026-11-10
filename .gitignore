@@ -22,3 +22,32 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Exports Blender non utilisés par le site
+public/models/villeportfolio_FINAL.glb
+public/models/villeportfolio_EXPORT.glb
+public/models/villeportfolio_WEB.glb
+public/models/villeportfolio_FAST.glb
+public/models/villeportfolio_FAST.glb.gz
+
+# Médias lourds : envoyés directement sur le VPS, pas versionnés
+public/models/villeportfolio_RUNTIME.glb
+public/models/villeportfolio_RUNTIME.glb.gz
+public/models/city-render/SynthTrails.glb
+public/models/black_hole.glb
+public/project-orbit/assets/derriere-le-prompt/derriere-le-prompt.mp4
+public/project-orbit/assets/ebene/ebene.mp4
+public/images/projects/v2/ebene-demonstration.mp4
+public/images/projects/sull-demo.mp4
+
+# Sauvegardes et fichiers de diagnostic
+.backups/
+backups/
+*.bak
+/erreur-build.txt
+/glass-shader-current.txt
+/orbit-current-code.txt
+/orbit-current.txt
+/portfolio-global-css.txt
+/portfolio-orbit-inspection.txt
+/project-orbit-layout.txt
