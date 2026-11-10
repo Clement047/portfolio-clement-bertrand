@@ -51,3 +51,9 @@ backups/
 /portfolio-global-css.txt
 /portfolio-orbit-inspection.txt
 /project-orbit-layout.txt
+
+*.backup
+*.backup-*
+*.backup.txt
+*.background-backup
+*.before-*
