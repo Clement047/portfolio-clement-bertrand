@@ -1,0 +1,29 @@
+﻿---
+import MainLayout from '../layouts/MainLayout.astro';
+import ContactLanding from '../components/ContactLanding.astro';
+
+import Intro from '../components/home/Intro.astro';
+import Presentation from '../components/home/Presentation.astro';
+import ProjectOrbit from '../components/ProjectOrbit.astro';
+import BlackHoleLoader from '../components/BlackHoleLoader.astro';
+---
+
+<MainLayout title="Clément Bertrand — Portfolio">
+  <a class="original-mode-switch" href="/">VERSION 3D ↗</a>
+  <BlackHoleLoader />
+  <main>
+    <div class="portfolio-atmosphere" aria-hidden="true">
+    <div class="ambient ambient-blue"></div>
+    <div class="ambient ambient-purple"></div>
+    <div class="grain"></div>
+  </div>
+<Intro />
+    <Presentation />
+    <ProjectOrbit assetBase="/project-orbit/" />
+    <ContactLanding />
+  </main>
+</MainLayout>
+
+
+
+<style>.original-mode-switch{position:fixed;right:30px;bottom:26px;z-index:100001;padding:12px 17px;border:1px solid #7164ac88;background:#090b18e8;color:#d8d4ed;font:10px Arial;letter-spacing:.16em;text-decoration:none}.original-mode-switch:focus-visible{outline:2px solid #a4ceff;outline-offset:4px}</style>

@@ -1,0 +1,774 @@
+﻿<section class="intro" id="intro">
+  <!-- Atmosphère -->
+  
+
+  <!-- Contenu principal -->
+  <div class="intro-content">
+    <p class="intro-label">
+      CLÉMENT BERTRAND — PORTFOLIO 2026
+    </p>
+
+    <div class="title-container" id="title-container">
+      
+      <!-- SVG principal -->
+      <div
+  class="intro-svg intro-svg-main"
+  id="intro-svg"
+  role="img"
+  aria-label="ENTER THE EXPERIENCE"
+></div>
+
+      <!-- Couches utilisées pour le glitch -->
+      <img
+        src="/svg/enter-the-experience.svg"
+        alt=""
+        aria-hidden="true"
+        class="intro-svg glitch-layer glitch-blue"
+        draggable="false"
+      />
+
+      <img
+        src="/svg/enter-the-experience.svg"
+        alt=""
+        aria-hidden="true"
+        class="intro-svg glitch-layer glitch-purple"
+        draggable="false"
+      />
+    </div>
+
+    <p class="intro-subtitle">
+      UNE IMMERSION DANS MON UNIVERS CRÉATIF
+    </p>
+
+    <button
+      class="enter-button"
+      id="enter-experience"
+      type="button"
+    >
+      <span>ENTRER DANS L'EXPÉRIENCE</span>
+      <span class="button-arrow" aria-hidden="true">↗</span>
+    </button>
+  </div>
+
+  <!-- Informations secondaires -->
+  <div class="intro-footer">
+    <span>AUDIOVISUEL — 3D — CRÉATION NUMÉRIQUE</span>
+    <span>© 2026</span>
+  </div>
+</section>
+
+<style>
+  .intro {
+    position: relative;
+    width: 100%;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    isolation: isolate;
+    background: #03030a;
+  }
+
+  /* ATMOSPHÈRE */
+
+  .intro-atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .ambient {
+    position: absolute;
+    width: 60vw;
+    height: 60vw;
+    border-radius: 50%;
+    filter: blur(130px);
+    opacity: 0.13;
+  }
+
+  .ambient-blue {
+    background: #365dff;
+    top: -35%;
+    left: -30%;
+  }
+
+  .ambient-purple {
+    background: #7d3cff;
+    bottom: -45%;
+    right: -25%;
+  }
+
+  .grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.12;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.25'/%3E%3C/svg%3E");
+  }
+
+  /* CONTENU */
+
+  .intro-content {
+    position: relative;
+    width: min(100%, 1450px);
+    padding: 120px 5% 110px;
+    text-align: center;
+    z-index: 2;
+  }
+
+  .intro-label {
+    margin: 0 0 65px;
+    color: #8582a8;
+    font-size: 10px;
+    letter-spacing: 0.42em;
+  }
+
+  /* SVG */
+
+  .title-container {
+    position: relative;
+    width: min(100%, 1150px);
+    margin: 0 auto;
+    isolation: isolate;
+    cursor: crosshair;
+    transform: translateZ(0);
+  }
+
+  .intro-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .intro-svg-main {
+    position: relative;
+    z-index: 3;
+    filter:
+      drop-shadow(0 0 12px rgba(115, 105, 255, 0.35))
+      drop-shadow(0 0 35px rgba(65, 70, 255, 0.12));
+    animation: electric-flicker 8s infinite;
+  }
+
+  /* COUCHES GLITCH */
+
+  .glitch-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    opacity: 0;
+    mix-blend-mode: screen;
+  }
+
+  .glitch-blue {
+    filter: brightness(1.4) sepia(1) saturate(8)
+      hue-rotate(165deg);
+  }
+
+  .glitch-purple {
+    filter: brightness(1.3) sepia(1) saturate(8)
+      hue-rotate(225deg);
+  }
+
+  .title-container.is-glitching .glitch-blue {
+    opacity: 0.8;
+    animation: glitch-blue 180ms steps(2, end) infinite;
+  }
+
+  .title-container.is-glitching .glitch-purple {
+    opacity: 0.7;
+    animation: glitch-purple 230ms steps(2, end) infinite;
+  }
+
+  .title-container.is-glitching .intro-svg-main {
+    animation: glitch-main 160ms steps(2, end) infinite;
+  }
+
+  @keyframes glitch-blue {
+    0% {
+      transform: translate(-4px, 1px);
+      clip-path: inset(10% 0 70% 0);
+    }
+
+    35% {
+      transform: translate(7px, -2px);
+      clip-path: inset(55% 0 20% 0);
+    }
+
+    70% {
+      transform: translate(-8px, 3px);
+      clip-path: inset(30% 0 45% 0);
+    }
+
+    100% {
+      transform: translate(3px, 0);
+      clip-path: inset(75% 0 8% 0);
+    }
+  }
+
+  @keyframes glitch-purple {
+    0% {
+      transform: translate(5px, -2px);
+      clip-path: inset(65% 0 15% 0);
+    }
+
+    45% {
+      transform: translate(-7px, 2px);
+      clip-path: inset(20% 0 60% 0);
+    }
+
+    80% {
+      transform: translate(9px, -1px);
+      clip-path: inset(45% 0 35% 0);
+    }
+
+    100% {
+      transform: translate(-3px, 1px);
+      clip-path: inset(5% 0 80% 0);
+    }
+  }
+
+  @keyframes glitch-main {
+    0%, 100% {
+      transform: translate(0);
+    }
+
+    25% {
+      transform: translate(2px, 0);
+    }
+
+    50% {
+      transform: translate(-3px, 1px);
+    }
+
+    75% {
+      transform: translate(1px, -1px);
+    }
+  }
+
+  @keyframes electric-flicker {
+    0%, 89%, 91%, 93%, 100% {
+      opacity: 1;
+    }
+
+    90%, 92% {
+      opacity: 0.65;
+    }
+  }
+
+  /* SOUS-TITRE */
+
+  .intro-subtitle {
+    margin: 45px 0 0;
+    color: #8785a8;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+  }
+
+  /* BOUTON */
+
+  .enter-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 60px;
+    padding: 18px 25px;
+    background: rgba(100, 85, 255, 0.04);
+    border: 1px solid rgba(160, 150, 255, 0.3);
+    color: #dedbff;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    transition:
+      background 0.35s,
+      border-color 0.35s,
+      box-shadow 0.35s,
+      transform 0.35s;
+  }
+
+  .enter-button:hover {
+    background: rgba(100, 85, 255, 0.13);
+    border-color: rgba(180, 165, 255, 0.8);
+    box-shadow: 0 0 40px rgba(100, 85, 255, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .button-arrow {
+    font-size: 17px;
+  }
+
+  /* FOOTER */
+
+  .intro-footer {
+    position: absolute;
+    bottom: 35px;
+    left: 5%;
+    right: 5%;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    color: #696782;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+  }
+
+  /* TRANSITION */
+
+  .intro.is-leaving .intro-content {
+    animation: intro-exit 900ms ease-in forwards;
+  }
+
+  .intro.is-leaving .intro-atmosphere {
+    animation: atmosphere-exit 900ms ease-in forwards;
+  }
+
+  @keyframes intro-exit {
+    to {
+      opacity: 0;
+      transform: scale(1.12);
+      filter: blur(15px);
+    }
+  }
+
+  @keyframes atmosphere-exit {
+    to {
+      opacity: 0;
+      transform: scale(1.3);
+    }
+  }
+
+  /* RESPONSIVE */
+
+  @media (max-width: 700px) {
+    .intro-content {
+      padding: 110px 6%;
+    }
+
+    .intro-label {
+      font-size: 8px;
+      letter-spacing: 0.25em;
+      margin-bottom: 40px;
+    }
+
+    .intro-subtitle {
+      font-size: 8px;
+      letter-spacing: 0.2em;
+      line-height: 1.8;
+    }
+
+    .enter-button {
+      margin-top: 45px;
+      gap: 20px;
+      font-size: 9px;
+    }
+
+    .intro-footer {
+      left: 6%;
+      right: 6%;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .intro-svg-main,
+    .glitch-layer,
+    .intro.is-leaving .intro-content,
+    .intro.is-leaving .intro-atmosphere {
+      animation: none !important;
+    }
+  }
+
+  /* SVG INTERACTIF */
+  #intro-svg {
+    width: 100%;
+    display: block;
+    position: relative;
+  }
+
+  #intro-svg :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  #intro-svg :global(path) {
+    will-change: transform;
+  }
+
+
+  
+  /* ATMOSPHERE ORIGINALE CONTINUE */
+  .intro {
+    background: transparent !important;
+    isolation: auto !important;
+  }
+
+  .intro-atmosphere {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: -1 !important;
+    overflow: hidden;
+  }
+
+</style>
+
+<script>
+  const titleContainer = document.querySelector<HTMLElement>('#title-container');
+  const svgContainer = document.querySelector<HTMLElement>('#intro-svg');
+  const enterButton = document.querySelector<HTMLButtonElement>('#enter-experience');
+  const intro = document.querySelector<HTMLElement>('#intro');
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  let glitchTimer: number | undefined;
+  let glitchEndTimer: number | undefined;
+
+  function triggerGlitch() {
+    if (!titleContainer || reducedMotion.matches) return;
+
+    titleContainer.classList.add('is-glitching');
+
+    window.clearTimeout(glitchEndTimer);
+
+    glitchEndTimer = window.setTimeout(() => {
+      titleContainer.classList.remove('is-glitching');
+    }, 90 + Math.random() * 230);
+  }
+
+  function scheduleGlitch() {
+    const delay = 800 + Math.random() * 1800;
+
+    glitchTimer = window.setTimeout(() => {
+      triggerGlitch();
+
+      if (Math.random() > 0.65) {
+        window.setTimeout(triggerGlitch, 130);
+      }
+
+      scheduleGlitch();
+    }, delay);
+  }
+
+  scheduleGlitch();
+
+  async function loadInteractiveSVG() {
+    if (!svgContainer || !titleContainer) return;
+
+    try {
+      const response = await fetch('/svg/enter-the-experience.svg');
+
+      if (!response.ok) {
+        throw new Error('Impossible de charger le SVG');
+      }
+
+      const svgText = await response.text();
+      const parser = new DOMParser();
+
+      const svgDocument = parser.parseFromString(
+        svgText,
+        'image/svg+xml'
+      );
+
+      if (svgDocument.querySelector('parsererror')) {
+        throw new Error('SVG invalide');
+      }
+
+      const sourceSVG = svgDocument.querySelector('svg');
+
+      if (!sourceSVG) return;
+
+      const svg = document.importNode(sourceSVG, true);
+
+      svg.setAttribute('width', '100%');
+      svg.removeAttribute('height');
+
+      svgContainer.replaceChildren(svg);
+
+      initializeDeformation(svg, titleContainer);
+
+    } catch (error) {
+      console.error('Erreur de chargement SVG :', error);
+    }
+  }
+
+  function initializeDeformation(
+    svg: SVGSVGElement,
+    container: HTMLElement
+  ) {
+    if (reducedMotion.matches) return;
+
+    const paths = Array.from(
+      svg.querySelectorAll<SVGPathElement>('path')
+    );
+
+    type Point = {
+      x: number;
+      y: number;
+      offsetX: number;
+      offsetY: number;
+      velocityX: number;
+      velocityY: number;
+    };
+
+    type ElasticPath = {
+      element: SVGPathElement;
+      points: Point[];
+      originalD: string;
+      closed: boolean;
+    };
+
+    const elasticPaths: ElasticPath[] = [];
+
+    // Échantillonnage de chaque tracé vectoriel
+    for (const path of paths) {
+      const originalD = path.getAttribute('d') || '';
+
+      if (!originalD) continue;
+
+      const length = path.getTotalLength();
+
+      if (!Number.isFinite(length) || length <= 0) continue;
+
+      const count = Math.max(
+        24,
+        Math.min(350, Math.ceil(length / 3))
+      );
+
+      const points: Point[] = [];
+
+      for (let i = 0; i < count; i++) {
+        const position = path.getPointAtLength(
+          (i / count) * length
+        );
+
+        points.push({
+          x: position.x,
+          y: position.y,
+          offsetX: 0,
+          offsetY: 0,
+          velocityX: 0,
+          velocityY: 0
+        });
+      }
+
+      elasticPaths.push({
+        element: path,
+        points,
+        originalD,
+        closed: /[zZ]\s*$/.test(originalD)
+      });
+    }
+
+    const mouse = {
+      x: -10000,
+      y: -10000,
+      active: false
+    };
+
+    // Conversion souris -> coordonnées SVG
+    function updateMouse(event: PointerEvent) {
+      const matrix = svg.getScreenCTM();
+
+      if (!matrix) return;
+
+      const point = svg.createSVGPoint();
+
+      point.x = event.clientX;
+      point.y = event.clientY;
+
+      const local = point.matrixTransform(
+        matrix.inverse()
+      );
+
+      mouse.x = local.x;
+      mouse.y = local.y;
+      mouse.active = true;
+    }
+
+    container.addEventListener('pointermove', updateMouse);
+
+    container.addEventListener('pointerleave', () => {
+      mouse.active = false;
+    });
+
+    // Reconstruction d'un contour lisse
+    function buildPath(points: Point[], closed: boolean) {
+      if (points.length < 2) return '';
+
+      const coordinates = points.map((p) => ({
+        x: p.x + p.offsetX,
+        y: p.y + p.offsetY
+      }));
+
+      let d = `M ${coordinates[0].x} ${coordinates[0].y}`;
+
+      if (closed) {
+        const n = coordinates.length;
+
+        for (let i = 0; i < n; i++) {
+          const current = coordinates[i];
+          const next = coordinates[(i + 1) % n];
+
+          const midX = (current.x + next.x) / 2;
+          const midY = (current.y + next.y) / 2;
+
+          d += ` Q ${current.x} ${current.y} ${midX} ${midY}`;
+        }
+
+        d += ' Z';
+      } else {
+        for (let i = 1; i < coordinates.length; i++) {
+          d += ` L ${coordinates[i].x} ${coordinates[i].y}`;
+        }
+      }
+
+      return d;
+    }
+
+    let animationFrame = 0;
+
+    function animate() {
+      const radius = 180;
+      const attraction = 140;
+      const stiffness = 0.09;
+      const damping = 0.87;
+
+      for (const item of elasticPaths) {
+        let moving = false;
+
+        for (const point of item.points) {
+          let targetX = 0;
+          let targetY = 0;
+
+          if (mouse.active) {
+            const dx = mouse.x - point.x;
+            const dy = mouse.y - point.y;
+
+            const distance = Math.hypot(dx, dy);
+
+            if (distance < radius) {
+              const influence =
+                Math.pow(1 - distance / radius, 2);
+
+              // Attraction locale vers le curseur
+              targetX = dx * influence * attraction / radius;
+              targetY = dy * influence * attraction / radius;
+            }
+          }
+
+          // Ressort élastique
+          point.velocityX +=
+            (targetX - point.offsetX) * stiffness;
+
+          point.velocityY +=
+            (targetY - point.offsetY) * stiffness;
+
+          point.velocityX *= damping;
+          point.velocityY *= damping;
+
+          point.offsetX += point.velocityX;
+          point.offsetY += point.velocityY;
+
+          if (
+            Math.abs(point.offsetX) > 0.01 ||
+            Math.abs(point.offsetY) > 0.01 ||
+            Math.abs(point.velocityX) > 0.01 ||
+            Math.abs(point.velocityY) > 0.01
+          ) {
+            moving = true;
+          }
+        }
+
+        if (moving) {
+          item.element.setAttribute(
+            'd',
+            buildPath(item.points, item.closed)
+          );
+
+          // Mesurer la déformation maximale du tracé
+          let maxDisplacement = 0;
+
+          for (const point of item.points) {
+            const displacement = Math.hypot(
+              point.offsetX,
+              point.offsetY
+            );
+
+            maxDisplacement = Math.max(
+              maxDisplacement,
+              displacement
+            );
+          }
+
+          // Glow directement appliqué à la géométrie SVG
+          const glowStrength = Math.min(
+            1,
+            maxDisplacement / 12
+          );
+
+          const glowSize = 3 + glowStrength * 12;
+
+          item.element.style.filter = `
+            drop-shadow(
+              0 0 ${glowSize}px
+              rgba(135, 100, 255, ${glowStrength * 0.85})
+            )
+            drop-shadow(
+              0 0 ${glowSize * 1.8}px
+              rgba(60, 100, 255, ${glowStrength * 0.45})
+            )
+          `;
+
+        } else {
+          item.element.setAttribute(
+            'd',
+            item.originalD
+          );
+
+          item.element.style.filter = '';
+        }
+      }
+
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('pagehide', () => {
+      cancelAnimationFrame(animationFrame);
+    }, { once: true });
+  }
+  loadInteractiveSVG();
+
+  titleContainer?.addEventListener('pointerenter', triggerGlitch);
+
+  enterButton?.addEventListener('click', () => {
+    if (!intro || intro.classList.contains('is-leaving')) return;
+
+    intro.classList.add('is-leaving');
+
+    window.clearTimeout(glitchTimer);
+    window.clearTimeout(glitchEndTimer);
+
+    const duration = reducedMotion.matches ? 0 : 900;
+
+    window.setTimeout(() => {
+      document.querySelector('#presentation')?.scrollIntoView({
+        behavior: reducedMotion.matches ? 'instant' : 'smooth'
+      });
+    }, duration);
+  });
+</script>
+
+
+
+
+
+
+
+
+

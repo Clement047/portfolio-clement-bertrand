@@ -1,0 +1,159 @@
+﻿<section class="presentation" id="presentation">
+  <div class="presentation-atmosphere" aria-hidden="true">
+    <div class="presentation-glow"></div>
+    <div class="presentation-stars" id="presentation-stars"></div>
+  </div>
+
+  <div class="presentation-content">
+    <p class="presentation-text">
+      Passionné par le cinéma, la musique et la création visuelle,
+      j'aime imaginer et donner vie à des univers singuliers.
+      Entre audiovisuel, 3D et design, j'explore différentes formes
+      de création avec une même ambition : repousser les limites
+      de ma créativité, bousculer les codes et proposer des
+      expériences qui sortent de l'ordinaire.
+    </p>
+  </div>
+</section>
+
+<style>
+  .presentation {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: transparent;
+    isolation: isolate;
+  }
+
+  .presentation-atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .presentation-glow { display: none; }
+
+  .presentation-stars {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .presentation-stars :global(.star) {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #c7c0ff;
+    opacity: 0.5;
+    animation: star-twinkle 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes star-twinkle {
+    from { opacity: 0.15; }
+    to { opacity: 0.8; }
+  }
+
+  .presentation-content {
+    position: relative;
+    width: min(100%, 1050px);
+    padding: 100px 7%;
+    text-align: center;
+  }
+
+  .presentation-text {
+    margin: 0;
+    font-family: 'Lexend', sans-serif;
+    font-size: clamp(15px, 1.15vw, 20px);
+    font-weight: 300;
+    line-height: 2;
+    letter-spacing: 0.2em;
+    color: #e5e1f5;
+
+    opacity: 0;
+    transform: translateY(65px);
+    filter: blur(12px);
+
+    transition:
+      opacity 1.5s ease,
+      transform 1.5s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 1.5s ease;
+  }
+
+  .presentation.is-visible .presentation-text {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+
+  @media (max-width: 700px) {
+    .presentation-content {
+      padding: 100px 8%;
+    }
+
+    .presentation-text {
+      font-size: clamp(13px, 3.2vw, 16px);
+      line-height: 2;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .presentation-text {
+      transition: none;
+    }
+
+    .presentation-stars :global(.star) {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  const presentation = document.querySelector<HTMLElement>(
+    '#presentation'
+  );
+
+  const starsContainer = document.querySelector<HTMLElement>(
+    '#presentation-stars'
+  );
+
+  if (starsContainer) {
+    const fragment = document.createDocumentFragment();
+
+    for (let i = 0; i < 85; i++) {
+      const star = document.createElement('span');
+
+      star.className = 'star';
+      star.style.left = `${Math.random() * 100}%`;
+      star.style.top = `${Math.random() * 100}%`;
+      star.style.animationDelay = `${Math.random() * 5}s`;
+      star.style.animationDuration = `${2 + Math.random() * 5}s`;
+
+      fragment.appendChild(star);
+    }
+
+    starsContainer.appendChild(fragment);
+  }
+
+  if (presentation) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          presentation.classList.add('is-visible');
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(presentation);
+  }
+</script>
+
+
+
+
