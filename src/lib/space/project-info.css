@@ -1,0 +1,353 @@
+/* Exact information layout and glass capsules from components/ProjectOrbit.astro. */
+.space-ui .project-orbit__info{right:auto;padding:0;border:0;background:transparent;box-shadow:none;backdrop-filter:none}
+
+  .space-ui .project-orbit__info {
+    position: absolute;
+    left: clamp(30px, 5vw, 100px);
+    top: 50%;
+    width: min(330px, 24vw);
+    transform: translateY(calc(-50% + 22px));
+    z-index: 5;
+    pointer-events: none;
+
+    opacity: 0;
+    filter: blur(9px);
+
+    transition:
+      opacity 0.55s ease,
+      filter 0.55s ease,
+      transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+
+    --project-accent: #a69cff;
+  }
+
+  .space-ui .project-orbit__info.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(-50%);
+  }
+
+  .space-ui .project-orbit__info-index {
+    display: block;
+    margin-bottom: 24px;
+    font-family: 'Lexend', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--project-accent);
+  }
+
+  .space-ui .project-orbit__info-description {
+    margin: 0;
+    font-family: 'Lexend', sans-serif;
+    font-size: clamp(12px, 0.95vw, 15px);
+    font-weight: 300;
+    line-height: 1.9;
+    color: #e3dff3;
+  }
+
+  .space-ui .project-orbit__info-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 25px;
+  }
+
+  .space-ui .project-orbit__skill {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 11px;
+
+    font-family: 'Lexend', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+
+    color: #e8e5f5;
+    background: rgba(20, 18, 37, 0.45);
+    border: 1px solid color-mix(
+      in srgb,
+      var(--project-accent) 45%,
+      transparent
+    );
+
+    border-radius: 3px;
+    backdrop-filter: blur(10px);
+  }
+
+  @media (max-width: 800px) {
+    .space-ui .project-orbit__info {
+      top: auto;
+      bottom: 80px;
+      left: 7%;
+      width: 86%;
+      transform: translateY(20px);
+    }
+
+    .space-ui .project-orbit__info.is-visible {
+      transform: translateY(0);
+    }
+
+    .space-ui .project-orbit__info-description {
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .space-ui .project-orbit__info-skills {
+      margin-top: 14px;
+    }
+
+    .space-ui .project-orbit__skill {
+      padding: 6px 8px;
+      font-size: 9px;
+    }
+  }
+
+  .space-ui .project-orbit__info {
+    position: absolute;
+    z-index: 5;
+
+    left: 50% !important;
+    top: auto !important;
+    bottom: clamp(65px, 9vh, 110px) !important;
+
+    width: min(680px, 85vw) !important;
+    text-align: center !important;
+
+    opacity: 0;
+    filter: blur(8px);
+
+    transform: translate(-50%, 18px) !important;
+
+    transition:
+      opacity 0.55s ease,
+      filter 0.55s ease,
+      transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+
+    pointer-events: none;
+  }
+
+  .space-ui .project-orbit__info.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(-50%, 0) !important;
+  }
+
+  .space-ui .project-orbit__info-index {
+    display: block;
+    margin-bottom: 12px !important;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+  }
+
+  .space-ui .project-orbit__info-description {
+    font-family: 'Lexend', sans-serif;
+    font-size: clamp(12px, 0.85vw, 14px) !important;
+    font-weight: 300;
+    line-height: 1.75 !important;
+  }
+
+  .space-ui .project-orbit__info-skills {
+    display: flex;
+    justify-content: center !important;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px !important;
+  }
+
+  @media (max-width: 800px) {
+    .space-ui .project-orbit__info {
+      bottom: 85px !important;
+      width: 88vw !important;
+    }
+  }
+
+  .space-ui .project-orbit__info-skills {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 23px;
+  }
+
+  .space-ui .project-orbit__skill {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    min-height: 42px;
+    padding: 11px 19px;
+
+    font-family: 'Lexend', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.055em;
+    line-height: 1.2;
+
+    color: rgba(245, 242, 255, 0.94);
+
+    border-radius: 100px;
+
+    border: 1px solid
+      color-mix(
+        in srgb,
+        var(--project-accent, #8b83ff) 55%,
+        rgba(255, 255, 255, 0.32)
+      );
+
+    background:
+      radial-gradient(
+        ellipse 90% 65% at 50% -10%,
+        rgba(255, 255, 255, 0.20),
+        transparent 85%
+      ),
+      radial-gradient(
+        ellipse 70% 100% at 0% 100%,
+        color-mix(
+          in srgb,
+          var(--project-accent, #8b83ff) 22%,
+          transparent
+        ),
+        transparent 95%
+      ),
+      linear-gradient(
+        165deg,
+        rgba(255, 255, 255, 0.105) 0%,
+        rgba(255, 255, 255, 0.018) 38%,
+        rgba(6, 8, 24, 0.28) 70%,
+        rgba(255, 255, 255, 0.055) 100%
+      );
+
+    backdrop-filter: blur(24px) saturate(170%);
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+
+    box-shadow:
+      inset 0 2px 2px rgba(255, 255, 255, 0.23),
+      inset 0 -2px 3px rgba(255, 255, 255, 0.075),
+      inset 2px 0 4px rgba(255, 255, 255, 0.055),
+      inset -2px 0 4px rgba(255, 255, 255, 0.035),
+      0 9px 28px rgba(0, 0, 0, 0.24),
+      0 0 20px
+        color-mix(
+          in srgb,
+          var(--project-accent, #8b83ff) 13%,
+          transparent
+        );
+
+    white-space: nowrap;
+
+    transition:
+      border-color 0.4s ease,
+      box-shadow 0.4s ease,
+      background 0.4s ease;
+  }
+
+  .space-ui .project-orbit__skill::before {
+    content: '';
+
+    position: relative;
+    z-index: 2;
+
+    width: 5px;
+    height: 5px;
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: var(--project-accent, #8b83ff);
+
+    box-shadow:
+      0 0 5px var(--project-accent, #8b83ff),
+      0 0 13px var(--project-accent, #8b83ff),
+      0 0 24px
+        color-mix(
+          in srgb,
+          var(--project-accent, #8b83ff) 65%,
+          transparent
+        );
+  }
+
+  .space-ui .project-orbit__skill::after {
+    content: '';
+
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    border-radius: inherit;
+    pointer-events: none;
+
+    background:
+      linear-gradient(
+        115deg,
+        transparent 8%,
+        rgba(255, 255, 255, 0.17) 19%,
+        rgba(125, 170, 255, 0.09) 27%,
+        transparent 39%,
+        rgba(194, 125, 255, 0.08) 62%,
+        transparent 79%
+      ),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+
+    opacity: 0.65;
+    mix-blend-mode: screen;
+  }
+
+  .space-ui .project-orbit__info.is-visible
+  .project-orbit__skill {
+    animation: glass-skill-appear 0.65s both;
+  }
+
+  .space-ui .project-orbit__info.is-visible
+  .project-orbit__skill:nth-child(2) {
+    animation-delay: 0.06s;
+  }
+
+  .space-ui .project-orbit__info.is-visible
+  .project-orbit__skill:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+
+  .space-ui .project-orbit__info.is-visible
+  .project-orbit__skill:nth-child(4) {
+    animation-delay: 0.18s;
+  }
+
+  @keyframes glass-skill-appear {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+      filter: blur(5px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  @media (max-width: 800px) {
+    .space-ui .project-orbit__info-skills {
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .space-ui .project-orbit__skill {
+      min-height: 34px;
+      padding: 8px 12px;
+      font-size: 9px;
+      gap: 7px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .space-ui .project-orbit__info.is-visible
+    .project-orbit__skill {
+      animation: none;
+    }
+  }

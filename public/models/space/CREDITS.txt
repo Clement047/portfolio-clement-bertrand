@@ -1,0 +1,16 @@
+ESPACE PROJETS — CRÉDITS DES RESSOURCES
+
+Astéroïdes : « Asteroid Field (100 x low-Poly) », Sereib.
+https://sketchfab.com/3d-models/asteroid-field-100-x-low-poly-24572b5eec404dd7888a76098054cd7a
+Licence CC BY 4.0 : https://creativecommons.org/licenses/by/4.0/
+Adaptations : séparation des roches, instances, répartition, taille des textures et réglages PBR.
+
+Saturne : modèle et textures de saturn.zip fournis pour ce projet ; source conservée dans le dossier cine d’origine. Adaptations : normalisation de la sphère, palette bleu-violet, intégration et éclairage.
+Galaxie : panorama procédural créé dans Blender pour cette scène.
+Titre : copie des courbes À PROPOS existantes, Agency FB Bold, géométrie exportée en maillage.
+Cartes et orbite : composants existants du portfolio, réutilisés.
+
+CONTACT : géométries des modèles locaux moon_rock_01_4k.blend, moon_rock_02_4k.blend et moon_rock_03_4k.blend (dossier SPARKY IA/rochers lunaires). Maillages allégés et matériaux bleus adaptés. Terrain et terminal créés pour ce portfolio. Le fichier exact du paysage de la maquette n’a pas été identifié.
+
+
+Ministry-class Shuttle by Daniel (@DanielAndersson), CC BY. Source: https://sketchfab.com/3d-models/star-wars-ministry-class-shuttle-07051f10a58e48c087e433d50e0e7d29 . Modified: rear passage, floor, walls and cyan strips. Star Wars inspired fan model.

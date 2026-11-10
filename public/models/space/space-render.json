@@ -1,0 +1,93 @@
+{
+  "titleSource": "C:/Users/clemb/Documents/Blender/Portfolio/villeportfolio_WORK.blend",
+  "titleCopies": [
+    {
+      "object": "SPACE_Projects_Title_Front",
+      "font": "Agency FB Bold",
+      "font_path": "C:\\windows\\Fonts\\AGENCYB.TTF",
+      "extrude": 0.15000000596046448,
+      "bevel_depth": 0.02500000037252903,
+      "bevel_resolution": 4,
+      "resolution_u": 12,
+      "scale": [
+        3.1997830867767334,
+        3.1997830867767334,
+        3.1997830867767334
+      ],
+      "body": "PROJETS"
+    },
+    {
+      "object": "SPACE_Projects_Title_Back",
+      "font": "Agency FB Bold",
+      "font_path": "C:\\windows\\Fonts\\AGENCYB.TTF",
+      "extrude": 0.15000000596046448,
+      "bevel_depth": 0.02500000037252903,
+      "bevel_resolution": 4,
+      "resolution_u": 12,
+      "scale": [
+        3.1997830867767334,
+        3.1997830867767334,
+        3.1997830867767334
+      ],
+      "body": "PROJETS"
+    }
+  ],
+  "areaLights": [],
+  "asteroids": 180,
+  "prototypes": 16,
+  "planetRadius": 9.9,
+  "ringOuterRadius": 31.9,
+  "orbitRadius": 26,
+  "cameraFrames": [
+    0,
+    240
+  ],
+  "fps": 24,
+  "lightGain": 0.0014641288433382138,
+  "look": {
+    "toneMapping": "AgX",
+    "exposure": 0
+  },
+  "assets": {
+    "asteroids": "Sereib — CC-BY-4.0 — https://sketchfab.com/3d-models/asteroid-field-100-x-low-poly-24572b5eec404dd7888a76098054cd7a",
+    "saturn": "User-provided saturn.zip; original archive retained."
+  },
+  "sunExportCorrections": [
+    {
+      "name": "SPACE_Key_ColdSun",
+      "nativeSunEnergy": 4.5,
+      "corrected": 3073.5
+    },
+    {
+      "name": "SPACE_Rim_VioletSun",
+      "nativeSunEnergy": 0.055,
+      "corrected": 37.565
+    }
+  ],
+  "orbitRadiusX": 23,
+  "orbitRadiusZ": 23,
+  "planetPositionBlender": [
+    9,
+    28,
+    20
+  ],
+  "orbitPositionBlender": [
+    0,
+    -58,
+    12
+  ],
+  "cameraReadingPositionBlender": [
+    9,
+    -45,
+    28
+  ],
+  "composition": "Reference-inspired cold directional light, diagonal rings, distant planet, clear foreground card corridor",
+  "nativeStars": 900,
+  "orbitInclinationDegrees": "Inherited from Saturn ring plane",
+  "cameraFramingMarginMultiplier": 1.08,
+  "glbBytes": 4579768,
+  "orbitParent": "SPACE_Saturn_System",
+  "orbitHeightAboveRingLocal": 9,
+  "titleMotion": "Fixed world transform; camera physically passes to its side and beyond it",
+  "cardClearanceVerification": "All bounding-box corners remain strictly above the ring plane through 720 rotation samples"
+}
