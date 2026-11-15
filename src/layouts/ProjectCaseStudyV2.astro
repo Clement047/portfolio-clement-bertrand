@@ -1,10 +1,14 @@
 ---
+import PortfolioHeader from '../components/PortfolioHeader.astro';
+import ProjectFooter from '../components/ProjectFooter.astro';
+import {ClientRouter} from 'astro:transitions';
+import PortfolioAudio from '../components/PortfolioAudio.astro';
 import '../styles/project-pages-v2.css';
 const { title, background } = Astro.props;
 ---
 <!doctype html>
 <html lang="fr">
-  <head>
+  <head><ClientRouter />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={`${title} — Projet de Clément Bertrand`} />
@@ -15,9 +19,12 @@ const { title, background } = Astro.props;
   </head>
   <body style={`--project-background:${background}`}>
     <main class="v2-shell"><h1 class="sr-only">{title}</h1><slot /></main>
-  </body>
+  <ProjectFooter title={title} /><PortfolioHeader /><PortfolioAudio /></body>
 </html>
 <script>
+let observer: ResizeObserver | undefined;
+function fitProjectPage() {
+observer?.disconnect();
 const shell = document.querySelector<HTMLElement>('.v2-shell');
 const artboard = shell?.querySelector<HTMLElement>('.v2-artboard');
 if (shell && artboard) {
@@ -26,7 +33,12 @@ if (shell && artboard) {
     artboard.style.transform = `scale(${scale})`;
     shell.style.height = `${Number(artboard.dataset.designHeight) * scale}px`;
   };
-  new ResizeObserver(fit).observe(shell);
+  observer = new ResizeObserver(fit);
+  observer.observe(shell);
   fit();
 }
+}
+fitProjectPage();
+document.addEventListener('astro:page-load', fitProjectPage);
+document.addEventListener('astro:before-swap', () => observer?.disconnect());
 </script>

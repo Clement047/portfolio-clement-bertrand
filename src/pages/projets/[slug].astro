@@ -1,9 +1,12 @@
 ﻿---
 import '../../styles/global.css';
+import PortfolioHeader from '../../components/PortfolioHeader.astro';
+import PortfolioAudio from '../../components/PortfolioAudio.astro';
+import ProjectFooter from '../../components/ProjectFooter.astro';
 import { projects } from '../../data/projects.js';
 
 export function getStaticPaths() {
-  return projects.filter(project => !['sull', 'sparky', 'reflections', 'ebene'].includes(project.slug)).map(project => ({
+  return projects.filter(project => !['sull', 'sparky', 'reflections', 'ebene', 'derriere-le-prompt'].includes(project.slug)).map(project => ({
     params: { slug: project.slug },
     props: { project }
   }));
@@ -28,13 +31,9 @@ const { project } = Astro.props;
       <div class="project-ring"></div>
     </div>
 
-    <a href="/" style="position:fixed;bottom:26px;right:30px;z-index:100;padding:12px 17px;border:1px solid #7164ac66;background:#090b18e8;color:#d8d4ed;font:10px Arial;letter-spacing:.16em;text-decoration:none">VERSION 3D ↗</a>
     <main class="project-content">
       <header class="project-header">
-        <a href="/portfolio-2d/#project-orbit" class="back-link">
-          <span aria-hidden="true">←</span>
-          RETOUR AUX PROJETS
-        </a>
+
 
         <span class="project-counter">
           PROJET {project.number} / 07
@@ -76,7 +75,7 @@ const { project } = Astro.props;
         <span>UNE EXPÉRIENCE À CONSTRUIRE</span>
       </footer>
     </main>
-  </body>
+  <ProjectFooter /><PortfolioHeader /><PortfolioAudio /></body>
 </html>
 
 <style>

@@ -1,0 +1,57 @@
+---
+import { projects } from '../data/projects.js';
+const { title = '', immersive = false } = Astro.props;
+const compact = ['/portfolio-2d/', '/contact/', '/mentions-legales/'].includes(Astro.url.pathname);
+const available = projects.filter(project => !['void', 'nokturne-studio'].includes(project.slug));
+const index = available.findIndex(project => project.title.toLocaleLowerCase('fr') === title.toLocaleLowerCase('fr'));
+const next = index >= 0 ? available[(index + 1) % available.length] : null;
+---
+<footer class:list={['project-footer', {'project-footer--compact': compact}]} data-project-footer hidden={immersive}>
+  <div class="project-footer-links">
+    {next ? <a class="project-footer-next" href={`/projets/${next.slug}/`}>
+      <span class="footer-caption">Projet suivant</span>
+      <span class="footer-project-title">{next.title} <span aria-hidden="true">↗</span></span>
+    </a> : !compact && <a class="project-footer-next" href="/portfolio-2d/#contact"><span class="footer-caption">Un projet, une rencontre</span><span class="footer-project-title">Créons quelque chose ensemble ↗</span></a>}
+    {next ? <a class="footer-contact" href="/portfolio-2d/#contact">Parlons de ton projet <span aria-hidden="true">↗</span></a> : <nav class="footer-navigation" aria-label="Navigation du pied de page"><a href="/portfolio-2d/#project-orbit">Projets</a><a href="/portfolio-2d/#presentation">À propos</a><a href="/portfolio-2d/#contact">Contact</a><a href="/musiques/">Studio</a></nav>}
+  </div>
+  <div class="project-footer-bottom">
+    <span>© {new Date().getFullYear()} Clément Bertrand</span>
+    <a class="footer-legal" href="/mentions-legales/">Mentions légales & confidentialité</a>
+    <a class="footer-all-projects" href="/portfolio-2d/#project-orbit">Tous les projets ↗</a>
+    <a class="footer-saturn" href="/saturne/" data-astro-reload>← Revenir à Saturne</a>
+  </div>
+</footer>
+<script>
+function mountProjectFooter() {
+  const footer = document.querySelector<HTMLElement>('[data-project-footer]');
+  if (footer) footer.dataset.origin = new URLSearchParams(location.search).get('from') === 'space' ? 'space' : '2d';
+}
+mountProjectFooter();
+document.addEventListener('astro:page-load', mountProjectFooter);
+</script>
+<style>
+@font-face{font-family:'Mabry Pro';src:url('/fonts/project-pages/mabry-pro-light.ttf') format('truetype');font-weight:300;font-display:swap}
+@font-face{font-family:'Le Murmure';src:url('/fonts/les-murmures/le-murmure.otf') format('opentype');font-weight:400;font-display:swap}
+.project-footer{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:60px 8.3% 95px;color:#fff;font-family:'Mabry Pro',sans-serif;font-weight:300}
+.project-footer[hidden]{display:none}
+.project-footer--compact .project-footer-links{justify-content:flex-end;padding:28px 0}
+.project-footer--compact .project-footer-bottom{flex-wrap:wrap}
+.project-footer--compact{padding-top:15px}
+.footer-navigation{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:18px;font-size:15px}
+.project-footer a{color:inherit;text-decoration:none}
+.project-footer-links{border-top:1px solid #ffffff40;padding:45px 0 55px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
+.project-footer-next{display:flex;flex-direction:column;gap:14px}
+.footer-caption{font-size:13px;letter-spacing:.14em;text-transform:uppercase;opacity:.65}
+.footer-project-title{max-width:650px;font:clamp(36px,5vw,72px)/1.05 'Le Murmure',sans-serif;letter-spacing:.02em}
+.footer-project-title>span{display:inline-block;font-family:'Mabry Pro',sans-serif;font-size:.55em;transition:transform .3s}
+.footer-contact{font-size:clamp(15px,1.4vw,20px);padding-bottom:5px}
+.project-footer-bottom{border-top:1px solid #ffffff25;padding-top:22px;display:flex;justify-content:space-between;gap:25px;font-size:13px;color:#ffffffa8}
+.project-footer a:hover,.project-footer a:focus-visible{color:#d2e8ff;text-shadow:0 0 18px #93b9ff80}
+.project-footer-next:is(:hover,:focus-visible) .footer-project-title>span{transform:translate(5px,-5px)}
+.project-footer a:focus-visible{outline:1px solid currentColor;outline-offset:8px}
+.footer-saturn{display:none}
+.project-footer[data-origin=space] .project-footer-links,.project-footer[data-origin=space] .footer-all-projects{display:none}
+.project-footer[data-origin=space] .footer-saturn{display:block}
+@media(max-width:650px){.project-footer{padding:35px 24px 85px}.project-footer-links{align-items:flex-start;flex-direction:column;gap:30px;padding:30px 0}.project-footer-bottom{font-size:11px;flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.footer-project-title>span{transition:none}}
+</style>
