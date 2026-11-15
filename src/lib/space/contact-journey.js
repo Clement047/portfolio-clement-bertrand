@@ -1,12 +1,15 @@
 import * as THREE from 'three';
-export const CONTACT_END=4.8;
+export const CONTACT_EXIT_START=3.66;
+export const CONTACT_CLEAR=3.98;
+export const CONTACT_FORM_START=3.98;
+export const CONTACT_END=4.18;
 export function contactRotation(j){
- const d=Math.PI/180;const stops=[[2.55,0],[2.85,-15*d],[3,-15*d],[3.3,-55*d],[3.45,-55*d],[3.75,-95*d],[3.9,-95*d],[4.2,-135*d]];
+ const d=Math.PI/180,stops=[[2.6,0],[2.78,-15*d],[3.18,-55*d],[3.58,-95*d]];
  if(j<=stops[0][0])return 0;
- for(let i=1;i<stops.length;i++)if(j<stops[i][0]){const [a,x]=stops[i-1],[b,y]=stops[i];return THREE.MathUtils.lerp(x,y,THREE.MathUtils.smoothstep(j,a,b));}
- return -135*d;
+ for(let i=1;i<stops.length;i++)if(j<stops[i][0]){const [a,x]=stops[i-1],[b,y]=stops[i];return THREE.MathUtils.lerp(x,y,(j-a)/(b-a));}
+ return -95*d;
 }
-export function contactIndex(j){if(j<2.78||j>4.08)return -1;return j<3.15?0:j<3.6?1:2;}
+export function contactIndex(j){if(j<2.7||j>CONTACT_EXIT_START)return -1;return j<2.98?0:j<3.38?1:2;}
 export function createContactJourney(root,arrivalCamera,landingCamera){
  root.updateWorldMatrix(true,true);
  const globe=root.getObjectByName('CONTACT_Lunar_Planet'),title=root.getObjectByName('CONTACT_Title');
@@ -29,7 +32,7 @@ export function createContactJourney(root,arrivalCamera,landingCamera){
  const radialUp=new THREE.Vector3(0,1,0).applyQuaternion(frame).transformDirection(root.matrixWorld);
  // Read the upright displays at eye level along the surface, rather than from above.
  const reading=framed(new THREE.Vector3(0,57,38)),lookAt=framed(new THREE.Vector3(0,56,0));helper.position.copy(reading);helper.up.copy(radialUp);helper.lookAt(lookAt);const readingQ=helper.quaternion.clone();
- const finalPosition=framed(new THREE.Vector3(0,54,22)),finalTarget=framed(new THREE.Vector3(0,50.7,-1));helper.position.copy(finalPosition);helper.lookAt(finalTarget);const finalQ=helper.quaternion.clone();
+ const finalPosition=reading.clone().addScaledVector(reading.clone().sub(center).normalize(),820),finalQ=readingQ.clone();
  const approachEnd=passed.clone().sub(center).normalize().multiplyScalar(Math.max(safeRadius,reading.distanceTo(center))).add(center);
  const stations=[];stage.traverse(o=>{if(o.userData.contact_id)stations.push(o);});
  for(const o of [...endElements,...stations])o.visible=false;
@@ -37,9 +40,9 @@ export function createContactJourney(root,arrivalCamera,landingCamera){
  return {stage,titleCenter,direction,reading,pickable,endElements,stations,center,finalPosition,safeRadius,
   keepAboveSurface(position){const radial=position.clone().sub(center),distance=radial.length();if(distance<1e-6)radial.set(0,1,0);if(distance<safeRadius)position.copy(center).add(radial.normalize().multiplyScalar(safeRadius));},
   sample(j,position,quaternion){
-   stage.rotation.x=contactRotation(j);title.visible=j<2.64;for(const o of endElements)o.visible=j>=4.18;for(const o of stations)o.visible=j>=2.72&&j<4.12;
-   if(j>=2.2&&j<2.85){const t=THREE.MathUtils.smoothstep(j,2.2,2.85);position.copy(start).lerp(reading,t);quaternion.copy(startQ).slerp(readingQ,t);}
-   else if(j>=2.85){position.copy(reading);quaternion.copy(readingQ);if(j>4.2){const t=THREE.MathUtils.smoothstep(j,4.2,4.55);position.lerp(finalPosition,t);quaternion.slerp(finalQ,t);}}
+   stage.rotation.x=contactRotation(j);title.visible=j<2.64;stage.scale.setScalar(Math.max(.001,1-THREE.MathUtils.smoothstep(j,3.80,CONTACT_CLEAR)));for(const o of endElements)o.visible=false;for(const o of stations)o.visible=j>=2.62&&j<CONTACT_CLEAR;
+   if(j>=2.2&&j<2.7){const t=THREE.MathUtils.smoothstep(j,2.2,2.7);position.copy(start).lerp(reading,t);quaternion.copy(startQ).slerp(readingQ,t);}
+   else if(j>=2.7){position.copy(reading);quaternion.copy(readingQ);if(j>CONTACT_EXIT_START){const t=THREE.MathUtils.smoothstep(j,CONTACT_EXIT_START,CONTACT_CLEAR);position.lerp(finalPosition,t);quaternion.slerp(finalQ,t);}}
    root.updateWorldMatrix(true,true);
   }
  };

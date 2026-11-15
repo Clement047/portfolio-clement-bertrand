@@ -32,6 +32,8 @@ const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
   window.addEventListener('pagehide', unmountOrbits);
 </script>
 <style>
+  @font-face{font-family:OrbitMabry;src:url("/fonts/project-pages/mabry-pro-light.ttf") format("truetype");font-weight:300;font-display:swap}
+
   .project-orbit { position: relative; height: 750svh; isolation: isolate; }
   .project-orbit__viewport { position: sticky; top: 0; width: 100%; height: 100svh; overflow: clip; touch-action: pan-y; }
   [data-orbit-canvas] { display: block; width: 100%; height: 100%; pointer-events: none; }
@@ -71,7 +73,7 @@ const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
   .project-orbit__info-index {
     display: block;
     margin-bottom: 24px;
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: 10px;
     letter-spacing: 0.25em;
     color: var(--project-accent);
@@ -79,7 +81,7 @@ const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
 
   .project-orbit__info-description {
     margin: 0;
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: clamp(12px, 0.95vw, 15px);
     font-weight: 300;
     line-height: 1.9;
@@ -98,7 +100,7 @@ const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
     align-items: center;
     padding: 9px 11px;
 
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: 10px;
     font-weight: 300;
 
@@ -184,7 +186,7 @@ const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
   }
 
   .project-orbit__info-description {
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: clamp(12px, 0.85vw, 14px) !important;
     font-weight: 300;
     line-height: 1.75 !important;
@@ -241,7 +243,7 @@ const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
     min-height: 42px;
     padding: 11px 19px;
 
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: 10px;
     font-weight: 300;
     letter-spacing: 0.055em;
@@ -528,7 +530,7 @@ const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
     touch-action: pan-y;
   }
   /* ===== END CLICKABLE PROJECT CARDS ===== */
-</style>
+.project-orbit__hint,.project-orbit__resume{font-family:OrbitMabry,sans-serif}.project-orbit :global(.project-orbit__skill){font-family:OrbitMabry,sans-serif}</style>
 
 
 

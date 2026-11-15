@@ -17,3 +17,6 @@ body > div.space-ui{position:fixed;inset:0;width:100vw;height:100dvh;z-index:18}
 .space-contact-link{font-family:'ContactMurmure',sans-serif;font-size:clamp(26px,3vw,42px);letter-spacing:.035em;color:#9eeaff;text-shadow:0 0 6px #60dfff,0 0 18px #347be8;background:transparent;border:0}
 
 .space-shuttle-visit{position:absolute;left:35px;top:145px;pointer-events:auto;background:#06182cdd;border:1px solid #63c9ff;color:#b5eaff;padding:14px 20px;font:26px 'ContactMurmure',sans-serif;box-shadow:0 0 15px #418dff33}.space-shuttle-visit[hidden]{display:none}
+
+/* Keep the space view free of navigation overlays; project details remain below the cards. */
+.space-ui .space-heading,.space-ui .space-credits,.space-ui .space-return,.space-ui .space-contact,.space-ui .space-journey,.space-ui .space-help,.space-ui .space-shuttle-visit{display:none!important}

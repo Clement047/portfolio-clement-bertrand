@@ -1,4 +1,9 @@
+import {CONTACT_END} from './contact-journey.js';
 const clamp=x=>Math.max(0,Math.min(1,x));
+// The camera reaches its project-reading pose at journey .9.
+export const ORBIT_SCROLL_START=.9,ORBIT_SCROLL_END=1.55;
+export const projectInfoVisible=journey=>journey>=ORBIT_SCROLL_START&&journey<ORBIT_SCROLL_END;
+export const projectOrbitProgress=journey=>clamp((journey-ORBIT_SCROLL_START)/(ORBIT_SCROLL_END-ORBIT_SCROLL_START));
 
 export function createSpaceScroll(onReturn){
 
@@ -6,17 +11,17 @@ export function createSpaceScroll(onReturn){
 
  return {
 
-  get progress(){return clamp(current);},get journey(){return current;},get orbitProgress(){return clamp((current-.65)/.9);},get target(){return target;},
+  get progress(){return clamp(current);},get journey(){return current;},get orbitProgress(){return projectOrbitProgress(current);},get target(){return target;},
 
-  scroll(delta){if(returnSent)return;const next=target+delta*.00035;if(next<0){overscroll-=next;target=0;if(overscroll>.018)returnRequested=true;}else{overscroll=0;target=Math.min(4.8,Math.max(0,next));if(delta>0)returnRequested=false;}},
+  scroll(delta){if(returnSent)return;const next=target+delta*(target>=1.55?.00055:.00035);if(next<0){overscroll-=next;target=0;if(overscroll>.018)returnRequested=true;}else{overscroll=0;target=Math.min(CONTACT_END,Math.max(0,next));if(delta>0)returnRequested=false;}},
 
-  goTo(value){target=Math.max(0,Math.min(4.8,value));returnRequested=false;returnSent=false;},
+  goTo(value){target=Math.max(0,Math.min(CONTACT_END,value));returnRequested=false;returnSent=false;},
 
   requestReturn(){returnRequested=true;target=0;},
 
-  update(delta){current+=(target-current)*(1-Math.exp(-6*delta));if(returnRequested&&current<.0006&&!returnSent){current=0;returnSent=true;onReturn();}return clamp(current);},
+  update(delta){current+=(target-current)*(1-Math.exp(-10*delta));if(returnRequested&&current<.0006&&!returnSent){current=0;returnSent=true;onReturn();}return clamp(current);},
 
-  seek(value){overscroll=0;target=Math.max(0,Math.min(4.8,value));current=target;returnRequested=false;returnSent=false;},
+  seek(value){overscroll=0;target=Math.max(0,Math.min(CONTACT_END,value));current=target;returnRequested=false;returnSent=false;},
 
   reset(){overscroll=0;target=0;current=0;returnRequested=false;returnSent=false;}
 

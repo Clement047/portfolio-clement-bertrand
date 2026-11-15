@@ -19,6 +19,7 @@ export function initProjectOrbit(root, embedded=null) {
     const canvas=embedded?.canvas??root.querySelector('[data-orbit-canvas]'),status=root.querySelector('[data-orbit-status]'),resume=root.querySelector('[data-orbit-resume]');
     const scene=embedded?.scene??new THREE.Scene(),camera=embedded?.camera??new THREE.PerspectiveCamera(38,1,.1,100);
     const cardParent=embedded?.group??scene;
+
     const projects=[
       {
         title:'SULL',
@@ -129,7 +130,7 @@ export function initProjectOrbit(root, embedded=null) {
       },
       {
         index: '06 / NOKTURNE STUDIO',
-        description: 'Un studio de création audiovisuelle fondé par trois passionnés, réunissant leurs compétences pour imaginer et donner vie à des univers singuliers. Entre courts-métrages, clips, publicités, musique et écriture, Nokturne Studio explore différentes formes de narration.',
+        description: 'Ce projet n’est pas encore disponible.',
         skills: [
           'Gestion de projet',
           'Réalisation audiovisuelle',
@@ -140,7 +141,7 @@ export function initProjectOrbit(root, embedded=null) {
       },
       {
         index: '07 / VOID',
-        description: 'Une créature horrifique imaginée et modélisée en 3D, prenant vie dans une mise en scène immersive inspirée des codes du cinéma d’horreur.',
+        description: 'Ce projet n’est pas encore disponible.',
         skills: [
           'Modélisation 3D',
           'Character Design',
@@ -160,6 +161,7 @@ export function initProjectOrbit(root, embedded=null) {
     function showProjectInfo(index) {
       if (index === activeProject) return;
 
+      
       activeProject = index;
 
       const project = projectDetails[index];
@@ -274,7 +276,8 @@ export function initProjectOrbit(root, embedded=null) {
       raycaster.setFromCamera(pointer, camera);
 
       const intersections = raycaster.intersectObjects(cards, true);
-      const blocker=embedded?.occluders?.length?raycaster.intersectObjects(embedded.occluders,true)[0]:null;
+      const occluders=embedded?.occluders??[];
+      const blocker=occluders.length?raycaster.intersectObjects(occluders,true)[0]:null;
 
       for (const hit of intersections) {
         if(blocker&&blocker.distance<hit.distance-.001)return -1;
@@ -294,15 +297,16 @@ export function initProjectOrbit(root, embedded=null) {
 
     function onCardPointerMove(event) {
       canvas.style.cursor =
-        getCardAtPointer(event) !== -1 ? 'pointer' : 'default';
+        projects[getCardAtPointer(event)]?.src ? 'pointer' : 'default';
     }
 
     function onCardClick(event) {
       const index = getCardAtPointer(event);
 
-      if (index === -1) return;
+      if (index === -1 || !projects[index].src) return;
 
-      window.location.assign('/projets/' + projectSlugs[index]);
+      window.dispatchEvent(new Event('portfolio:card-click'));
+      setTimeout(()=>{if(embedded){sessionStorage.setItem('space-return-progress',String(embedded.getJourney?.()??1));window.location.assign('/projets/'+projectSlugs[index]+'/?from=space');}else import('astro:transitions/client').then(({navigate})=>navigate('/projets/'+projectSlugs[index]));},180);
     }
 
     canvas.addEventListener('pointermove', onCardPointerMove);
@@ -336,6 +340,7 @@ const localCamera=embedded?cardParent.worldToLocal(camera.getWorldPosition(new T
 const pose = path.orbitPose(cardAngle, localCamera, embedded?{...embedded.orbitSettings,readabilityUp:(embedded.readabilityUp?.()??new THREE.Vector3(0,1,0)).clone().transformDirection(cardParent.matrixWorld.clone().invert())}:undefined);
 
 card.position.copy(pose.position);
+if(!embedded)card.position.y+=.65;
 card.visible = !embedded||(embedded.getVisibility?.()??1)>.005;
 card.quaternion.copy(pose.quaternion);
 
@@ -346,7 +351,7 @@ return { card, i };
       order.forEach(({card},i)=>{card.body.renderOrder=i*10;card.videoMesh.renderOrder=i*10+1;card.glassMesh.renderOrder=i*10+2;card.titleMesh.renderOrder=i*10+3;});
 
 
-      // Embedded 3D only: avoid decoding/uploading seven full-resolution videos
+      // Embedded 3D only: avoid decoding/uploading all full-resolution videos
       // when their cards are behind the camera or after leaving Saturn.
       if(embedded){videoBudgetTime+=dt;if(videoBudgetTime>.25){videoBudgetTime=0;cards.forEach((card,i)=>{
         const point=card.getWorldPosition(new THREE.Vector3()).project(camera);
@@ -396,7 +401,7 @@ return { card, i };
 
       // Une carte doit être visible et proche de l'axe central.
       const visibleCandidates = candidates.filter(
-        candidate => candidate.inView&&(!embedded||(embedded.getVisibility?.()??1)>.5)
+        candidate => candidate.inView&&(!embedded||((embedded.getVisibility?.()??1)>.5&&(embedded.getInfoVisibility?.()??true)))
       );
 
       // Parmi les cartes visibles, la plus proche de la caméra
@@ -425,6 +430,7 @@ return { card, i };
   dispose.ready=ready;dispose.update=dt=>embeddedUpdate(dt);dispose.setVisible=value=>{embeddedVisible=value;root.hidden=!value;if(!value&&embedded?.canvas)embedded.canvas.style.cursor='default';root.querySelectorAll('video').forEach(video=>{if(value&&(video.currentSrc||video.src))video.play().catch(()=>{root.querySelector('[data-orbit-resume]').hidden=false;});else video.pause();});};
   return dispose;
 }
+
 
 
 

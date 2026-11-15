@@ -1,3 +1,4 @@
+@font-face{font-family:OrbitMabry;src:url("/fonts/project-pages/mabry-pro-light.ttf") format("truetype");font-weight:300;font-display:swap}
 /* Exact information layout and glass capsules from components/ProjectOrbit.astro. */
 .space-ui .project-orbit__info{right:auto;padding:0;border:0;background:transparent;box-shadow:none;backdrop-filter:none}
 
@@ -30,7 +31,7 @@
   .space-ui .project-orbit__info-index {
     display: block;
     margin-bottom: 24px;
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: 10px;
     letter-spacing: 0.25em;
     color: var(--project-accent);
@@ -38,7 +39,7 @@
 
   .space-ui .project-orbit__info-description {
     margin: 0;
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: clamp(12px, 0.95vw, 15px);
     font-weight: 300;
     line-height: 1.9;
@@ -57,7 +58,7 @@
     align-items: center;
     padding: 9px 11px;
 
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: 10px;
     font-weight: 300;
 
@@ -139,7 +140,7 @@
   }
 
   .space-ui .project-orbit__info-description {
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: clamp(12px, 0.85vw, 14px) !important;
     font-weight: 300;
     line-height: 1.75 !important;
@@ -182,7 +183,7 @@
     min-height: 42px;
     padding: 11px 19px;
 
-    font-family: 'Lexend', sans-serif;
+    font-family: OrbitMabry, sans-serif;
     font-size: 10px;
     font-weight: 300;
     letter-spacing: 0.055em;

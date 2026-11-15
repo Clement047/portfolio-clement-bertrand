@@ -1,7 +1,7 @@
 import {replaceContactType} from './contact-type.js';
 import {addAmbientVeil} from '../ambient-veil.js';
 import {neonTitle} from '../neon-title.js';
-import {createContactJourney,contactIndex,CONTACT_END} from './contact-journey.js';
+import {createContactJourney,contactIndex,CONTACT_END,CONTACT_CLEAR,CONTACT_FORM_START} from './contact-journey.js';
 import contactDetails from '../../data/contact.json' with {type:'json'};
 import {SPACE_BACKGROUND,TITLE_EMISSION} from './look.js';
 import { createSaturnRings } from './rings.js';
@@ -13,7 +13,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { initProjectOrbit } from '../../scripts/initProjectOrbit.js';
-import { createSpaceScroll } from './journey-scroll.js';
+import { createSpaceScroll,projectInfoVisible } from './journey-scroll.js';
 import { createParallaxStars, animateNebulaDome } from './galaxy.js';
 import { createSaturnAtmosphere } from './atmosphere.js';
 import './space.css';
@@ -29,12 +29,13 @@ export function createSpaceExperience(renderer,onReturn,{environment=null}={}){
  const copyScene=new THREE.Scene(),copyCamera=new THREE.OrthographicCamera(-1,1,1,-1,0,1),copyMaterial=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,toneMapped:false,uniforms:{image:{value:null}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:'uniform sampler2D image;varying vec2 vUv;void main(){gl_FragColor=sRGBTransferEOTF(texture2D(image,vUv));}'});copyScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),copyMaterial));
  let shuttle=null,shuttlePlaced=false,shuttleVisit=false,shuttleBlend=0,shuttleTravel=0;
  const shuttleAnchor=new THREE.Group();shuttleAnchor.name='SPARKY_OPTIONAL_SHUTTLE';scene.add(shuttleAnchor);
- new GLTFLoader().loadAsync('/models/space/SPARKY_SHUTTLE_OPEN.glb?v=rear-door-4').then(g=>{shuttle=g.scene;shuttleAnchor.add(shuttle);for(const z of [-8]){const lamp=new THREE.PointLight(0x55aaff,16,7,2);lamp.position.set(0,-.7,z);shuttleAnchor.add(lamp);}shuttleAnchor.visible=false;}).catch(e=>console.error('Navette :',e));
+ // The optional shuttle is paused; do not download or display it.
  const visitButton=document.createElement('button');visitButton.className='space-shuttle-visit';visitButton.textContent='← Explorer le vaisseau';visitButton.hidden=true;ui.append(visitButton);
  visitButton.addEventListener('click',()=>{shuttleVisit=!shuttleVisit;visitButton.textContent=shuttleVisit?'Revenir au parcours →':'← Explorer le vaisseau';});
- const landing=document.querySelector('[data-contact-landing]');
+ const landing=document.querySelector('[data-contact-landing]');let contactHandoff=false,contactPrefetched=false;
  const readPosition=new THREE.Vector3(),readQuaternion=new THREE.Quaternion(),poseHelper=new THREE.PerspectiveCamera();let contact,arrivalCamera,landingCamera,contactEntered=false,contactJourney=null;
- const contactReady=new GLTFLoader().loadAsync('/models/space/CONTACT_LUNAIRE.glb?v=upright-7').then(async gltf=>{
+ let startSpaceAssets;const spaceAssetGate=new Promise(resolve=>{startSpaceAssets=resolve;});
+ const contactReady=spaceAssetGate.then(()=>new GLTFLoader().loadAsync('/models/space/CONTACT_LUNAIRE.glb?v=upright-7')).then(async gltf=>{
   contact=gltf.scene;await replaceContactType(contact);contact.position.set(180,-70,-210);scene.add(contact);contact.updateMatrixWorld(true);
   arrivalCamera=gltf.cameras.find(c=>c.name==='CONTACT_ArrivalCamera');landingCamera=gltf.cameras.find(c=>c.name==='CONTACT_LandingCamera');if(!arrivalCamera||!landingCamera)throw Error('Contact cameras missing');
   contact.traverse(o=>{if(o.isLight)o.intensity=o.intensity/683*.12;if(o.isMesh){o.receiveShadow=true;o.castShadow=!o.name.endsWith('_Icon');for(const m of Array.isArray(o.material)?o.material:[o.material])if(m.name==='CONTACT_Cyan_Emission'){m.emissive.setRGB(...TITLE_EMISSION.color);m.emissiveIntensity=1.8;m.color.setRGB(.015,.08,.2);m.roughness=.28;m.metalness=.4;}}});contact.traverse(o=>{if(o.isMesh){const convert=m=>m.name==='CONTACT_Cyan_Emission'?neonTitle(m):m;o.material=Array.isArray(o.material)?o.material.map(convert):convert(o.material);}});contactJourney=createContactJourney(contact,arrivalCamera,landingCamera);contact.visible=false;
@@ -48,10 +49,12 @@ export function createSpaceExperience(renderer,onReturn,{environment=null}={}){
   contactJourney?.sample(j,position,quaternion);
   contactJourney?.keepAboveSurface(position);
   camera.position.copy(camera.parent.worldToLocal(position));camera.quaternion.copy(camera.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(quaternion));camera.updateMatrixWorld(true);
-  asset.scene.visible=j<1.95;const inContact=j>1.62;if(contact)contact.visible=inContact;if(contactEntered!==inContact){contactEntered=inContact;renderer.shadowMap.needsUpdate=true;}
-  const fade=THREE.MathUtils.smoothstep(j,4.55,CONTACT_END);if(landing){landing.hidden=!shown||fade===0;landing.style.opacity=String(fade);landing.style.transform=`translateY(${(1-fade)*12}vh)`;landing.style.pointerEvents=shown&&fade>.98?'auto':'none';}
+  asset.scene.visible=j<1.95;const inContact=j>1.62&&j<CONTACT_CLEAR;if(contact)contact.visible=inContact;if(contactEntered!==inContact){contactEntered=inContact;renderer.shadowMap.needsUpdate=true;}
+  const fade=THREE.MathUtils.smoothstep(j,CONTACT_FORM_START,CONTACT_END);if(landing){landing.hidden=!shown||fade===0;landing.style.opacity=String(fade);landing.style.transform=`translateY(${(1-fade)*12}vh)`;landing.style.pointerEvents=shown&&fade>.98?'auto':'none';}
+  if(shown&&j>3.45&&!contactPrefetched){contactPrefetched=true;for(const href of ['/contact/?from=space','/models/space/background.glb']){const link=document.createElement('link');link.rel='prefetch';link.href=href;document.head.append(link);}}
+  if(shown&&j>=CONTACT_END-.02&&!contactHandoff){contactHandoff=true;location.assign('/contact/?from=space');}
+
  }
- landing?.querySelector('[data-contact-back]')?.addEventListener('click',()=>scroll.seek(1.1));
  const contactRay=new THREE.Raycaster();
  function openContact(event){if(!shown||contactIndex(scroll.journey)<0||!contactJourney)return;const rect=renderer.domElement.getBoundingClientRect();contactRay.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2),camera);const hit=contactRay.intersectObjects(contactJourney.pickable,false)[0];if(hit){const href=hit.object.userData.contact_href;if(contactDetails.some(c=>c.href===href)){if(href.startsWith('mailto:'))location.href=href;else window.open(href,'_blank','noopener,noreferrer');}}}
  renderer.domElement.addEventListener('click',openContact);
@@ -62,11 +65,12 @@ export function createSpaceExperience(renderer,onReturn,{environment=null}={}){
  }
  function setCameraProgress(progress){if(!cameraMixer)return;cameraAction.paused=false;cameraMixer.setTime(Math.min(cameraDuration,Math.max(0,progress)*cameraDuration));asset.scene.updateMatrixWorld(true);sourceCamera.getWorldPosition(camera.position);sourceCamera.getWorldQuaternion(camera.quaternion);camera.updateMatrixWorld(true);
  }
- const ready=new GLTFLoader().loadAsync(stats.source).then(gltf=>{
+ const ready=spaceAssetGate.then(()=>new GLTFLoader().loadAsync(stats.source)).then(gltf=>{
   asset=gltf;scene.add(gltf.scene);sourceCamera=gltf.cameras.find(c=>c.name==='SPACE_ScrollCamera')??gltf.cameras[0];if(!sourceCamera)throw Error('SPACE_ScrollCamera missing');camera=new THREE.PerspectiveCamera(sourceCamera.fov,innerWidth/innerHeight,sourceCamera.near,6000);camera.name='SPACE_RuntimeJourneyCamera';scene.add(camera);fitCamera();renderPass.camera=camera;
   const clip=gltf.animations.find(c=>c.tracks.some(t=>t.name.includes('SPACE_ScrollCamera')));if(!clip)throw Error('SPACE_Camera_Approach missing');cameraDuration=clip.duration;cameraMixer=new THREE.AnimationMixer(gltf.scene);cameraAction=cameraMixer.clipAction(clip).setLoop(THREE.LoopOnce,1);cameraAction.clampWhenFinished=true;cameraAction.play();setCameraProgress(0);
   const anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
   gltf.scene.traverse(o=>{
+
    if(o.name==='SPACE_Projects_Title_Float'){title=o;titleBase.copy(o.position);titleScaleBase.copy(o.scale);}
    if(o.name==='SPACE_Galaxy_Dome'){sky=o;o.castShadow=false;nebula=animateNebulaDome(o);}
    if(o.name==='SPACE_Cold_Stellar_Glow'){
@@ -96,7 +100,7 @@ export function createSpaceExperience(renderer,onReturn,{environment=null}={}){
  function prepareOrbit(){
   if(orbital)return orbital.ready;
   const group=asset.scene.getObjectByName('SPACE_ProjectOrbit_Anchor');if(!group)throw Error('Orbit anchor missing');
-  orbital=initProjectOrbit(ui,{THREE,scene,renderer,camera,canvas:renderer.domElement,group,occluders:[asset.scene.getObjectByName('SPACE_Saturn_Globe')],rotationDirection:1,readabilityUp:()=>new THREE.Vector3(0,1,0).applyQuaternion(group.getWorldQuaternion(new THREE.Quaternion())),orbitSettings:{radiusX:group.userData.orbit_radius_x??23,radiusZ:group.userData.orbit_radius_z??23,centerY:0,centerZ:0,verticalAmplitude:0,faceCameraBlend:.95},cardScale:1.15,onOrbitAngle:angle=>{if(globe){globe.rotation.y=angle+.48;rings.rotation.y=angle+.48;}},getProgress:()=>scroll.orbitProgress,getVisibility:()=>THREE.MathUtils.smoothstep(scroll.progress,.36,.6)*(1-THREE.MathUtils.smoothstep(scroll.journey,1.55,1.8)),onReady:({cards})=>stats.readyCards=cards.length});
+  orbital=initProjectOrbit(ui,{THREE,scene,renderer,camera,canvas:renderer.domElement,group,occluders:[asset.scene.getObjectByName('SPACE_Saturn_Globe')],rotationDirection:1,readabilityUp:()=>new THREE.Vector3(0,1,0).applyQuaternion(group.getWorldQuaternion(new THREE.Quaternion())),orbitSettings:{radiusX:group.userData.orbit_radius_x??23,radiusZ:group.userData.orbit_radius_z??23,centerY:0,centerZ:0,verticalAmplitude:0,faceCameraBlend:.95},cardScale:1.15,onOrbitAngle:angle=>{if(globe){globe.rotation.y=angle+.48;rings.rotation.y=angle+.48;}},getJourney:()=>scroll.journey,getProgress:()=>scroll.orbitProgress,getInfoVisibility:()=>projectInfoVisible(scroll.journey),getVisibility:()=>THREE.MathUtils.smoothstep(scroll.progress,.36,.6)*(1-THREE.MathUtils.smoothstep(scroll.journey,1.55,1.8)),onReady:({cards})=>stats.readyCards=cards.length});
   return orbital.ready.then(()=>orbital.setVisible(shown));
  }
  function update(_externalTime){
@@ -127,7 +131,7 @@ export function createSpaceExperience(renderer,onReturn,{environment=null}={}){
  }
  return {ready,stats,get progress(){return scroll.progress;},
   async prepare(){
-    await Promise.all([ready,contactReady]);await prepareOrbit();if(stats.readyCards!==7)throw Error('Seven original project cards must be ready');stats.prepared=true;
+    startSpaceAssets();await Promise.all([ready,contactReady]);await prepareOrbit();if(stats.readyCards!==stats.originalProjectCards)throw Error('All active project cards must be ready');stats.prepared=true;
     // Finite warmup during the existing locked Sparky interaction, never after city entry.
     const previousTarget=renderer.getRenderTarget(),warm=new THREE.WebGLRenderTarget(16,16);
     try{renderer.compile(scene,camera);draw(warm,0);}finally{renderer.setRenderTarget(previousTarget);warm.dispose();lastTime=null;}
@@ -140,3 +144,4 @@ export function createSpaceExperience(renderer,onReturn,{environment=null}={}){
   dispose(){renderer.domElement.removeEventListener('click',openContact);ui.remove();orbital?.();stars.dispose();ringSurface?.dispose();atmosphere?.dispose();composer.dispose();bloom.dispose();smaa.dispose();output.dispose();copyMaterial.dispose();copyScene.children[0].geometry.dispose();asset?.scene.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m?.dispose();});}
  };
 }
+
