@@ -1,0 +1,40 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import SpaceBackdrop from '../components/SpaceBackdrop.astro';
+---
+<MainLayout title="Mentions légales et confidentialité — Clément Bertrand">
+  <main class="legal-page">
+    <SpaceBackdrop />
+    <h1>Mentions légales<br />& confidentialité</h1>
+    <section><h2>Édition du site</h2>
+      <p>Ce portfolio personnel étudiant est édité par Clément Bertrand, également responsable de la publication.</p>
+      <p>Contact : <a href="mailto:clementbertrand047@gmail.com">clementbertrand047@gmail.com</a>.</p>
+    </section>
+    <section><h2>Hébergement</h2>
+      <p>Hébergeur prévu : Infomaniak Network SA, Rue Eugène Marziano 25, 1227 Les Acacias, Genève, Suisse.</p>
+      <p><a href="https://www.infomaniak.com/fr/cgv/impressum" target="_blank" rel="noopener noreferrer">Coordonnées et mentions légales d’Infomaniak ↗</a></p>
+      <p class="legal-pending">Le choix de l’hébergeur doit être confirmé avant la mise en ligne publique du portfolio.</p>
+    </section>
+    <section><h2>Créations et crédits</h2>
+      <p>Les projets présentés documentent des travaux personnels ou réalisés en collaboration. Les contributions des collaborateurs sont précisées sur les pages concernées. Les images, œuvres, marques et extraits de tiers restent la propriété de leurs titulaires respectifs.</p>
+      <p>Pour toute demande de réutilisation d’une création ou toute question sur un crédit, contactez l’éditeur par email.</p>
+    </section>
+    <section id="confidentialite"><h2>Données du formulaire de contact</h2>
+      <p>Clément Bertrand utilise votre nom, votre adresse email, votre message et, si vous le souhaitez, une pièce jointe pour traiter votre demande et vous répondre. Le nom, l’email et le message sont nécessaires à l’envoi ; la pièce jointe est facultative.</p>
+      <p>Ce traitement repose sur l’intérêt légitime à répondre aux messages adressés au portfolio. Les informations sont transmises à Clément Bertrand par le service FormSubmit et sa messagerie Gmail. Elles ne servent pas à l’envoi de publicité.</p>
+      <p>Les échanges sont conservés le temps nécessaire au traitement et au suivi de votre demande. Vous pouvez demander leur suppression à tout moment à l’adresse de contact ci-dessus.</p>
+      <p>FormSubmit et Google interviennent dans la transmission et le stockage du message ; leurs services peuvent traiter des données hors de l’Union européenne. Consultez les <a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer">informations de confidentialité de FormSubmit</a> et les <a href="https://policies.google.com/privacy?hl=fr" target="_blank" rel="noopener noreferrer">informations de confidentialité de Google</a>.</p>
+      <p>Vous pouvez demander l’accès à vos données, leur rectification, leur effacement, la limitation du traitement ou vous y opposer en écrivant à <a href="mailto:clementbertrand047@gmail.com">clementbertrand047@gmail.com</a>. Vous pouvez également adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noopener noreferrer">CNIL</a>.</p>
+    </section>
+    <section><h2>Préférences de navigation</h2>
+      <p>Le site mémorise localement vos préférences sonores et la musique sélectionnée afin de conserver vos réglages entre les pages. Ces préférences restent dans le stockage de votre navigateur et peuvent être effacées depuis ses paramètres.</p>
+    </section>
+  </main>
+</MainLayout>
+<style>
+.legal-page{position:relative;isolation:isolate;max-width:1000px;margin:auto;padding:150px 35px 65px;color:#e7edf8;font:300 18px/1.65 'Mabry Pro',sans-serif}
+h1{font:400 clamp(52px,7vw,90px)/1.05 'Le Murmure',sans-serif;margin:0 0 65px}
+section{margin:0 0 45px}h2{font:400 38px/1.2 'Le Murmure',sans-serif;margin:0 0 18px}p{margin:0 0 16px}
+a{color:#c9ddff;text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere}.legal-pending{color:#c3b5da;font-size:15px}
+@media(max-width:650px){.legal-page{padding:125px 24px 40px;font-size:16px}h1{margin-bottom:40px}}
+</style>
