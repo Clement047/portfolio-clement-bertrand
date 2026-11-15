@@ -1,32 +1,71 @@
 ---
 import contacts from '../data/contact.json';
-const { immersive = false } = Astro.props;
-const [mail,instagram,linkedin]=contacts;
-const stars=[{"x": 487.0, "y": 16.559999999999945, "width": 20.873, "height": 20.873, "src": "/images/contact-final/57d66158-c89b-437c-9a41-a4b07e5ef17b.svg", "node": "334:21"}, {"x": 584.0, "y": 136.0, "width": 20.873, "height": 20.873, "src": "/images/contact-final/57d66158-c89b-437c-9a41-a4b07e5ef17b.svg", "node": "334:24"}, {"x": 302.0, "y": 61.0, "width": 12.0, "height": 12.0, "src": "/images/contact-final/5b2279e8-113b-42b8-aa38-8497f5ae2656.svg", "node": "334:27"}, {"x": 122.0, "y": 61.0, "width": 20.0, "height": 20.0, "src": "/images/contact-final/f689eaa3-479b-4793-83a3-3b2516d008ff.svg", "node": "334:42"}, {"x": 1014.0, "y": 38.0, "width": 43.945, "height": 204.945, "src": "/images/contact-final/112b3d0b-d006-4393-a4b9-c7bce10fd165.svg", "node": "334:57"}, {"x": 1237.0, "y": 83.0, "width": 12.0, "height": 12.0, "src": "/images/contact-final/5b2279e8-113b-42b8-aa38-8497f5ae2656.svg", "node": "334:81"}, {"x": 372.0, "y": 92.59999999999991, "width": 555.0, "height": 123.525, "src": "/images/contact-final/4a6b7071-5232-4303-9894-d0a390f032ed.svg", "node": "334:84"}, {"x": 777.0, "y": 7.0, "width": 12.0, "height": 12.0, "src": "/images/contact-final/5b2279e8-113b-42b8-aa38-8497f5ae2656.svg", "node": "334:98"}, {"x": 772.0, "y": 221.0, "width": 12.0, "height": 12.0, "src": "/images/contact-final/5b2279e8-113b-42b8-aa38-8497f5ae2656.svg", "node": "334:103"}];
+import SpaceBackdrop from './SpaceBackdrop.astro';
+const {immersive=false}=Astro.props;
+const prefix=immersive?'contact-3d':'contact-2d';
 ---
-<section id="contact" class:list={['contact-landing',{'contact-landing--immersive':immersive}]} data-contact-landing={immersive?'':undefined} hidden={immersive} aria-label="Contact">
- {immersive && <button class="contact-back" data-contact-back>↑ Revenir aux projets</button>}
- <div class="contact-design-wrap"><div class="contact-artboard" data-figma-file="VhiGuWfgYkPDTIAS57lBhf" data-design-width="1440" data-design-height="560">
-  <img class="contact-terrain" src="/images/contact-final/9a336ab5-34a2-4eae-a43f-ef9d891c43cb.png" alt="" decoding="async" data-node-id="334:20" />
-  {stars.map(star=><img class="contact-star" src={star.src} alt="" style={`left:${star.x}px;top:${star.y}px;width:${star.width}px;height:auto`} data-node-id={star.node} />)}
-  <h2 data-node-id="334:101">Et si on créait quelque chose ensemble ?</h2>
-  <a class="contact-cta" href={mail.href} aria-label={`Me contacter : ${mail.label}`} data-node-id="334:102"><img src="/images/contact-final/6153bea4-a19d-4500-abd8-757f195f1cac.svg" alt="" /><span>Me contacter</span></a>
-  <p class="contact-credit" data-node-id="438:429">© 2026 CLÉMENT BERTRAND</p><p class="contact-degree" data-node-id="438:430">Portfolio réalisé dans le cadre du BUT MMI</p>
-  <a class="contact-home crop" href="/portfolio-2d/" aria-label="Accueil du portfolio 2D" data-node-id="438:432"><img src="/images/contact-final/be59a52c-4069-4e99-a4a3-0e6144a0cc67.png" alt="" /></a>
-  <a class="contact-mail crop" href={mail.href} aria-label={mail.label}><img src={mail.icon} alt="E-mail" /></a>
-  <a class="contact-instagram crop" href={instagram.href} target="_blank" rel="noopener noreferrer" aria-label={`Instagram : ${instagram.label}`}><img src={instagram.icon} alt="Instagram" /></a>
-  <a class="contact-linkedin crop" href={linkedin.href} target="_blank" rel="noopener noreferrer" aria-label={`LinkedIn : ${linkedin.label}`}><img src={linkedin.icon} alt="LinkedIn" /></a>
- </div></div>
+<section id="contact" class:list={['contact-landing',{'contact-landing--immersive':immersive}]} data-contact-landing={immersive?'':undefined} hidden={immersive} aria-labelledby={`${prefix}-title`}>
+ {!immersive&&<SpaceBackdrop />}
+ <div class="contact-shell">
+  <div class="contact-intro">
+   <h2 id={`${prefix}-title`}>Et si on créait<br />quelque chose<br />ensemble ?</h2>
+   <address class="contact-identifiers">
+    {contacts.map(c=><a href={c.href} target={c.id==='email'?undefined:'_blank'} rel={c.id==='email'?undefined:'noopener noreferrer'}>
+     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
+      {c.id==='email'?<><rect x="2" y="4.5" width="20" height="15" rx="2" /><path d="m3 6 9 7 9-7" /></>:c.id==='instagram'?<><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.6" cy="6.5" r=".7" fill="currentColor" /></>:<><rect x="2.5" y="2.5" width="19" height="19" rx="2" /><path d="M7 10v8M11 18v-8m0 3c0-4 6-4 6 0v5" /><circle cx="7" cy="6.8" r=".7" fill="currentColor" /></>}
+     </svg>
+     <span>{c.id==='instagram'?'@'+c.label:c.label}</span>
+    </a>)}
+   </address>
+  </div>
+  <form class="contact-form" data-contact-form action={`https://formsubmit.co/${contacts[0].label}`} method="POST" enctype="multipart/form-data">
+   <input type="hidden" name="_subject" value="Nouveau projet — Portfolio Clément Bertrand" />
+   <input type="hidden" name="_template" value="table" />
+   <input type="hidden" name="_captcha" value="false" />
+   <input type="text" name="_honey" class="contact-honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+   {[
+    {key:'name',label:'Nom',type:'text',autocomplete:'name',max:100},
+    {key:'email',label:'Email',type:'email',autocomplete:'email',max:254},
+    {key:'message',label:'Parle-moi de ton projet',type:'textarea',autocomplete:'off',max:8000}
+   ].map(field=><div class="contact-field" data-contact-field>
+    <label for={`${prefix}-${field.key}`}>{field.label}</label>
+    {field.type==='textarea'?<textarea id={`${prefix}-${field.key}`} name={field.key} rows="1" maxlength={field.max} required placeholder=" " />:<input id={`${prefix}-${field.key}`} name={field.key} type={field.type} autocomplete={field.autocomplete} maxlength={field.max} required placeholder=" " />}
+    <svg class="contact-string" viewBox="0 0 1000 24" preserveAspectRatio="none" aria-hidden="true"><path d="M0 12 Q500 12 1000 12" /></svg>
+   </div>)}
+   <div class="contact-attachment">
+    <label class="contact-file-label" for={`${prefix}-attachment`}>
+     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8.5 13.5 7-7a3 3 0 0 1 4.25 4.25l-9 9a5 5 0 0 1-7.1-7.1l9-9a2 2 0 0 1 2.85 2.85l-9 9a1 1 0 0 0 1.4 1.4l8-8" /></svg>
+     <span>Joindre un fichier</span>
+    </label>
+    <input class="contact-file-input" id={`${prefix}-attachment`} type="file" name="attachment" aria-describedby={`${prefix}-file-note`} />
+    <small id={`${prefix}-file-note`}>10 Mo maximum</small>
+    <div class="contact-file-chosen" data-file-chosen hidden><span data-file-name></span><button type="button" data-remove-file data-contact-control aria-label="Retirer le fichier">Retirer</button></div>
+   </div>
+   <button class="contact-send" type="submit" data-contact-control aria-label="Envoyer">
+    {Array.from('Envoyer').map((letter,index)=><span class="contact-send-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter}</span><em>{letter}</em></span>)}
+   </button>
+   <p class="contact-privacy">Nom, email et message requis ; fichier facultatif. Vos informations servent à vous répondre et sont transmises via FormSubmit. <a href="/mentions-legales/#confidentialite">Confidentialité et droits</a>.</p>
+   <p class="contact-form-status" data-form-status role="status" aria-live="polite"></p>
+  </form>
+ </div>
 </section>
 <style>
-@font-face{font-family:ContactMurmure;src:url('/fonts/les-murmures/le-murmure.otf')}@font-face{font-family:ContactJersey;src:url('/fonts/project-pages/jersey-10.ttf')}
-.contact-landing{position:relative;isolation:isolate;background:#000220;color:#fff;overflow:hidden}.contact-landing[hidden]{display:none}.contact-landing--immersive{position:fixed;inset:0;z-index:80;opacity:0;pointer-events:none}.contact-design-wrap{width:100%;height:38.8889vw;position:relative}.contact-landing--immersive .contact-design-wrap{position:absolute;bottom:0}.contact-artboard{position:absolute;left:0;top:0;width:1440px;height:560px;transform:scale(var(--contact-scale,1));transform-origin:0 0;background:#000220;overflow:hidden}.contact-terrain{position:absolute;inset:0;width:1440px;height:560px;max-width:none}.contact-star{position:absolute;max-width:none;pointer-events:none}.contact-artboard h2{position:absolute;left:245px;top:101px;width:978px;height:76px;font:86.367px/normal ContactMurmure;letter-spacing:1.7273px;margin:0;font-weight:400}.contact-cta{position:absolute;left:585px;top:213px;width:277px;height:89.811px;display:block}.contact-cta>img{position:absolute;inset:0;width:277px;height:auto;max-width:none}.contact-cta span{position:absolute;left:53px;top:21px;white-space:nowrap;font:37.529px/normal ContactJersey;color:#4cfafa}.contact-credit,.contact-degree{position:absolute;left:29px;font:24px/normal ContactJersey;color:#4cfafa;margin:0}.contact-credit{top:479.088px}.contact-degree{top:507.874px}.crop{display:block;position:absolute;overflow:hidden}.crop img{position:absolute;max-width:none;pointer-events:none}.contact-home{left:672px;top:456px;width:126px;height:78px}.contact-home img{width:146.01%;height:156.81%;left:-24.43%;top:-26.95%}.contact-mail{left:1229px;top:490.305px;width:59.005px;height:43.69px}.contact-mail img{width:164.54%;height:173.4%;left:-33.6%;top:-37.09%}.contact-instagram{left:1364.51px;top:485.936px;width:52.481px;height:49.064px}.contact-instagram img{width:148.15%;height:143.1%;left:-25.36%;top:-21.97%}.contact-linkedin{left:1301.709px;top:485.233px;width:52.291px;height:52.767px}.contact-linkedin img{width:182.31%;height:144.59%;left:-42.65%;top:-25.64%}.contact-back{position:absolute;top:28px;left:35px;z-index:3;background:#060b20;border:1px solid #576593;color:#c8dfff;padding:10px 16px;cursor:pointer}a:focus-visible{outline:3px solid #4cfafa;outline-offset:5px}
+@font-face{font-family:ContactMurmure;src:url('/fonts/les-murmures/le-murmure.otf');font-display:swap}
+.contact-landing{position:relative;isolation:isolate;min-height:100svh;overflow:hidden;color:#edf1fa;background:radial-gradient(ellipse at 10% 65%,#351d5366,transparent 65%),radial-gradient(ellipse at 90% 10%,#11395366,transparent 60%),#02040c;scroll-margin-top:70px;font-family:PortfolioMabry,sans-serif}.contact-landing[hidden]{display:none}.contact-landing--immersive{position:fixed;inset:0;z-index:80;opacity:0;pointer-events:none;overflow-y:auto;background:transparent}
+.contact-shell{width:min(1100px,calc(100% - 100px));margin:0 auto;padding:160px 0 110px}.contact-intro{display:grid;grid-template-columns:minmax(240px,330px) 1fr;gap:clamp(45px,8vw,140px);align-items:center}.contact-intro h2{font:clamp(48px,5.5vw,76px)/1.02 ContactMurmure,sans-serif;letter-spacing:.015em;font-weight:400;margin:0}.contact-identifiers{display:grid;gap:21px;padding-top:0;font-style:normal}.contact-identifiers a{display:flex;align-items:center;gap:18px;color:inherit;text-decoration:none;font:clamp(19px,2vw,28px)/1.3 PortfolioMabry,sans-serif;width:max-content;max-width:100%;transition:color .2s}.contact-identifiers a span{overflow-wrap:anywhere}.contact-identifiers a:hover{color:#bba3ff}.contact-identifiers a:first-child span{text-decoration:underline;text-underline-offset:5px}.contact-identifiers svg{width:30px;height:30px;flex:none;filter:drop-shadow(0 0 5px #749dd666)}
+.contact-form{width:min(100%,720px);margin-top:85px;display:grid;gap:32px}.contact-field{position:relative;min-height:65px;padding-bottom:13px}.contact-field label{position:absolute;left:0;top:19px;pointer-events:none;transform-origin:left top;transition:transform .28s,color .25s;font-size:clamp(17px,1.5vw,21px);color:#c8cedd}.contact-field:focus-within label,.contact-field.is-filled label{transform:translateY(-17px) scale(.72);color:#b2c7e6}.contact-field input,.contact-field textarea{display:block;width:100%;min-height:51px;padding:19px 0 4px;border:0;border-radius:0;outline:0;background:transparent;color:#f3f5fb;font:clamp(17px,1.5vw,21px)/1.5 PortfolioMabry,sans-serif;box-shadow:none;resize:none;caret-color:#bfaaff}.contact-string{position:absolute;left:0;bottom:0;width:100%;height:24px;overflow:visible;pointer-events:none}.contact-string path{fill:none;stroke:#a8b3c68c;stroke-width:1;vector-effect:non-scaling-stroke;transition:stroke .2s}.contact-field:focus-within .contact-string path{stroke:#dfd3ff}.contact-honey{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;opacity:0;pointer-events:none}
+.contact-attachment{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin-top:2px}.contact-file-label{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:clamp(17px,1.5vw,21px)}.contact-file-label span{border-bottom:1px solid #adb4c6;padding-bottom:4px}.contact-file-label svg{width:21px;height:21px}.contact-file-input{position:absolute;width:1px;height:1px;opacity:0;left:0;top:0}.contact-attachment:focus-within .contact-file-label{outline:1px solid #bda9ff;outline-offset:7px}.contact-attachment small{color:#8e9bb3;font-size:12px}.contact-file-chosen{width:100%;display:flex;gap:16px;align-items:center;color:#bbd6f7;font-size:14px}.contact-file-chosen[hidden]{display:none}.contact-file-chosen span{overflow-wrap:anywhere}.contact-form button[data-remove-file]{font:14px PortfolioMabry,sans-serif;color:#c9badf;background:none;border:0;padding:0;box-shadow:none;text-decoration:underline;cursor:pointer}
+.contact-form .contact-send{justify-self:start;display:inline-flex;align-items:center;position:relative;margin-top:4px;min-height:44px;padding:0;background:none;border:0;box-shadow:none;color:#e6edf8;font:22px PortfolioMabry,sans-serif;cursor:pointer;transition:color .2s}.contact-send-letter{position:relative;display:inline-block;white-space:pre}.contact-send-letter>span,.contact-send-letter>em{display:inline-block;font-style:normal;transition:opacity .18s,transform .4s;transition-delay:calc(var(--i)*35ms)}.contact-send-letter>em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:35px ContactMurmure;opacity:0;transform:translateY(60%)}.contact-send:is(:hover,:focus-visible,[aria-busy=true]){color:#bba3ff;text-shadow:0 0 15px #8372f9}.contact-send:is(:hover,:focus-visible,[aria-busy=true]) .contact-send-letter>span{opacity:0;transform:translateY(-60%)}.contact-send:is(:hover,:focus-visible,[aria-busy=true]) .contact-send-letter>em{opacity:1;transform:translateY(0)}.contact-send:disabled{cursor:wait}.contact-form-status{min-height:1.5em;margin:-10px 0 0;font-size:14px;line-height:1.5;color:#c7d8ef}.contact-form-status[data-state=error]{color:#ffc6ca}.contact-form-status[data-state=success]{color:#b9ead8}
+a:focus-visible{outline:1px solid #bda9ff;outline-offset:7px}
+@media(max-width:700px){.contact-shell{width:calc(100% - 48px);padding:120px 0 100px}.contact-intro{grid-template-columns:1fr;gap:35px}.contact-intro h2{font-size:55px}.contact-identifiers a{font-size:18px;gap:13px}.contact-identifiers svg{width:25px;height:25px}.contact-form{margin-top:60px;gap:27px}}
+@media(prefers-reduced-motion:reduce){.contact-field label,.contact-string path,.contact-send-letter>span,.contact-send-letter>em{transition:none}}
+.contact-privacy{max-width:650px;margin:0;color:#a9b5c8;font-size:12px;line-height:1.6}.contact-privacy a{color:#d1dcf1;text-decoration:underline;text-underline-offset:3px}
 </style>
+<style is:global>body:has(.earth-hero) #contact{z-index:2;background:transparent}html.contact-in-view .city-mode-switch{bottom:26px;top:auto}</style>
 <script>
-const contactSection=document.querySelector('.contact-landing');if(contactSection)new IntersectionObserver(entries=>{document.documentElement.classList.toggle('contact-in-view',entries.some(e=>e.isIntersecting));},{threshold:.1}).observe(contactSection);
-for(const wrap of document.querySelectorAll<HTMLElement>('.contact-design-wrap')){const board=wrap.querySelector<HTMLElement>('.contact-artboard')!;const resize=()=>{const w=wrap.getBoundingClientRect().width;if(w>0){board.style.setProperty('--contact-scale',String(w/1440));wrap.style.height=`${w*560/1440}px`;}};new ResizeObserver(resize).observe(wrap);resize();}
+import {mountContactForms} from '../lib/contact-form.js';
+function mountContact(){mountContactForms();}
+mountContact();document.addEventListener('astro:page-load',mountContact);
 </script>
 
-<style is:global>
-html.contact-in-view .city-mode-switch,html.contact-in-view .space-test-mode,html.contact-in-view .original-mode-switch{bottom:auto;top:26px}
-</style>
+
