@@ -1,29 +1,29 @@
 ﻿---
 import MainLayout from '../layouts/MainLayout.astro';
+import ModeSwitch from '../components/ModeSwitch.astro';
 import ContactLanding from '../components/ContactLanding.astro';
 
-import Intro from '../components/home/Intro.astro';
+import EarthMoonHero from '../components/home/EarthMoonHero.astro';
 import Presentation from '../components/home/Presentation.astro';
 import ProjectOrbit from '../components/ProjectOrbit.astro';
-import BlackHoleLoader from '../components/BlackHoleLoader.astro';
+
 ---
 
 <MainLayout title="Clément Bertrand — Portfolio">
-  <a class="original-mode-switch" href="/">VERSION 3D ↗</a>
-  <BlackHoleLoader />
+  <ModeSwitch mode="3d" />
   <main>
     <div class="portfolio-atmosphere" aria-hidden="true">
     <div class="ambient ambient-blue"></div>
     <div class="ambient ambient-purple"></div>
     <div class="grain"></div>
   </div>
-<Intro />
-    <Presentation />
+<EarthMoonHero />
     <ProjectOrbit assetBase="/project-orbit/" />
+    <Presentation />
     <ContactLanding />
   </main>
 </MainLayout>
 
 
 
-<style>.original-mode-switch{position:fixed;right:30px;bottom:26px;z-index:100001;padding:12px 17px;border:1px solid #7164ac88;background:#090b18e8;color:#d8d4ed;font:10px Arial;letter-spacing:.16em;text-decoration:none}.original-mode-switch:focus-visible{outline:2px solid #a4ceff;outline-offset:4px}</style>
+<style is:global>.original-mode-switch{position:fixed;right:30px;bottom:26px;z-index:100001;padding:12px 17px;border:1px solid #7164ac88;background:#090b18e8;color:#d8d4ed;font:10px Arial;letter-spacing:.16em;text-decoration:none}.original-mode-switch:focus-visible{outline:2px solid #a4ceff;outline-offset:4px}body[data-hero-visible="true"] .original-mode-switch,body[data-hero-visible="true"] .portfolio-music-choice{display:none!important}body:has(.earth-hero) [data-project-orbit]{margin-top:-100svh;position:relative;z-index:2;border-radius:0;overflow:clip;background:radial-gradient(ellipse at 20% 25%,#12336b66,transparent 65%),radial-gradient(ellipse at 85% 60%,#39136566,transparent 60%),#030613!important}body:has(.earth-hero) .project-orbit__viewport{background:radial-gradient(ellipse at 20% 25%,#12336b88,transparent 65%),radial-gradient(ellipse at 85% 60%,#39136588,transparent 60%),#030613!important;mask-image:linear-gradient(to bottom,transparent,#000 max(1px,var(--home-handoff-feather,0px)))}body:has(.earth-hero) [data-project-orbit]{background:transparent!important}@media(prefers-reduced-motion:reduce){body:has(.earth-hero) [data-project-orbit]{margin-top:0}}body:has(.earth-hero) .project-orbit__viewport,body:has(.earth-hero) .earth-hero{background:none!important;mask-image:none}body:has(.earth-hero) .project-orbit__viewport::before,body:has(.earth-hero) .project-orbit__viewport::after{display:none!important}</style>

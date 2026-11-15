@@ -5,7 +5,7 @@
   <!-- Contenu principal -->
   <div class="intro-content">
     <p class="intro-label">
-      CLÉMENT BERTRAND — PORTFOLIO 2026
+      CLÉMENT BERTRAND
     </p>
 
     <div class="title-container" id="title-container">
@@ -16,7 +16,7 @@
   id="intro-svg"
   role="img"
   aria-label="ENTER THE EXPERIENCE"
-></div>
+><img src="/svg/enter-the-experience.svg" alt="Enter the experience" style="width:100%;height:auto" /></div>
 
       <!-- Couches utilisées pour le glitch -->
       <img
@@ -36,9 +36,7 @@
       />
     </div>
 
-    <p class="intro-subtitle">
-      UNE IMMERSION DANS MON UNIVERS CRÉATIF
-    </p>
+
 
     <button
       class="enter-button"
@@ -414,6 +412,7 @@
     overflow: hidden;
   }
 
+@font-face{font-family:IntroMurmure;src:url('/fonts/les-murmures/le-murmure.otf');font-display:swap}.intro-label{font-family:IntroMurmure,sans-serif;font-size:32px;letter-spacing:.08em}.intro.is-leaving .intro-content{animation:none;opacity:1;transform:none;filter:none}
 </style>
 
 <script>
@@ -749,7 +748,7 @@
   enterButton?.addEventListener('click', () => {
     if (!intro || intro.classList.contains('is-leaving')) return;
 
-    intro.classList.add('is-leaving');
+    // Keep the intro visible when returning to the top.
 
     window.clearTimeout(glitchTimer);
     window.clearTimeout(glitchEndTimer);

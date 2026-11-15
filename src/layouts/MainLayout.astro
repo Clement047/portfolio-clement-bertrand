@@ -1,5 +1,9 @@
 ---
+import PortfolioHeader from '../components/PortfolioHeader.astro';
+import ProjectFooter from '../components/ProjectFooter.astro';
+import {ClientRouter} from 'astro:transitions';
 import '../styles/global.css';
+import PortfolioAudio from '../components/PortfolioAudio.astro';
 
 interface Props {
   title?: string;
@@ -12,7 +16,7 @@ const {
 
 <!doctype html>
 <html lang="fr">
-  <head>
+  <head><ClientRouter />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -20,6 +24,6 @@ const {
   </head>
 
   <body>
-    <slot />
+    <slot /><ProjectFooter immersive={['/', '/saturne/', '/test-espace/', '/test-ville/', '/musiques/'].includes(Astro.url.pathname)} /><PortfolioHeader /><PortfolioAudio />
   </body>
 </html>
