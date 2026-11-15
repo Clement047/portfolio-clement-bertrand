@@ -59,3 +59,4 @@ backups/
 *.before-*
 # Journaux de build
 build-*.log
+public/images/projects/v2/prompt-demonstration.mp4
