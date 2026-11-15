@@ -57,3 +57,5 @@ backups/
 *.backup.txt
 *.background-backup
 *.before-*
+# Journaux de build
+build-*.log
