@@ -1,22 +1,29 @@
 ---
+import PortfolioAudio from '../PortfolioAudio.astro';
+import ModeSwitch from '../ModeSwitch.astro';
 import ExperienceTitle from './ExperienceTitle.astro';
 import ContactLanding from '../ContactLanding.astro';
 ---
-<meta charset="utf-8" />
+<meta charset="utf-8" /><PortfolioAudio />
+<!-- Start the city downloads while the HTML is parsed, not once the scripts have run.
+     Same mode/credentials as the fetches in model-loading.js and GLTFLoader. -->
+<link rel="preload" href="/models/villeportfolio_RUNTIME.glb.gz" as="fetch" crossorigin="anonymous" />
+<link rel="preload" href="/models/city-render/SparkySurfaces.glb" as="fetch" crossorigin="anonymous" />
+<link rel="preload" href="/models/city-render/DistrictAdditions.glb" as="fetch" crossorigin="anonymous" />
 <ContactLanding immersive />
-<a class="city-mode-switch" href="/portfolio-2d/" aria-label="Passer à la version 2D">VERSION 2D ↗</a>
+<ModeSwitch mode="2d" />
 <div id="city-experience">
   <div id="city-canvas"></div>
   <div class="city-hud">
-    <span>CLÉMENT BERTRAND</span>
-    <span id="city-progress">0 %</span>
   </div>
   <div id="city-loading"><p>Chargement de l’expérience…</p></div>
+  <section id="city-scroll-intro" hidden aria-labelledby="city-scroll-intro-title" role="status">
+    <div><span class="scroll-intro-symbol" aria-hidden="true">↕</span><h2 id="city-scroll-intro-title">L’expérience se découvre en défilant</h2><p>Utilisez la molette de votre souris<br />ou faites glisser votre doigt sur l’écran.</p><p class="scroll-intro-note">Défilez dans les deux sens et prenez le temps d’explorer.</p></div>
+  </section>
   <div id="city-entry" hidden>
-    <p>CLÉMENT BERTRAND</p>
+    <p class="city-entry-name"><img src="/svg/clement-bertrand.svg" alt="Clément Bertrand" width="1895" height="684" /></p>
     <button id="city-enter" aria-label="Entrer dans l’expérience"><ExperienceTitle /></button>
-    
-    <a href="/portfolio-2d/">VERSION 2D ↗</a>
+
   </div>
   <p id="city-scroll-start" hidden>Faites défiler pour explorer ↕</p>
   <aside id="city-about-hint" hidden><span aria-hidden="true">↑ ↓</span><p>Prenez le temps de lire.<br>Défilez dans les deux sens.</p></aside>
@@ -91,7 +98,7 @@ import ContactLanding from '../ContactLanding.astro';
   @keyframes loaderPulse{0%,100%{transform:translateY(0);opacity:.3}50%{transform:translateY(-10px);opacity:1}}
   @media(prefers-reduced-motion:reduce){#city-experience :global(.loader-orbit i){animation:none}#city-enter{transition:none}}
   @media(max-width:600px){.city-hud{left:20px;right:20px;top:22px}#city-about-hint{left:20px;bottom:25px;font-size:11px}}
-  .city-mode-switch{position:fixed;right:30px;bottom:26px;z-index:100;background:#090b18d9;border:1px solid #7164ac66;color:#d8d4ed;text-decoration:none;padding:12px 17px;font:10px Arial;letter-spacing:.16em;backdrop-filter:blur(8px)}
+  .city-mode-switch{position:fixed;right:30px;bottom:26px;z-index:100;background:none;border:0;color:#d8d4ed;text-decoration:none;padding:12px 17px;font:10px Arial;letter-spacing:.16em;backdrop-filter:none}
   .city-mode-switch:hover{border-color:#a795ed;color:white}.city-mode-switch:focus-visible{outline:2px solid #a4ceff;outline-offset:4px}
   #city-enter img{filter:none}#city-enter{cursor:crosshair}
   #city-loading{background:radial-gradient(ellipse at 20% 20%,#1a124d55,transparent 55%),radial-gradient(ellipse at 85% 80%,#08295755,transparent 55%),#03030a}
@@ -109,17 +116,43 @@ import ContactLanding from '../ContactLanding.astro';
   @keyframes loaderSignal{0%,100%{transform:scaleY(.35);opacity:.35}50%{transform:scaleY(1);opacity:1}}
   @font-face{font-family:'Le Murmure';src:url('/fonts/les-murmures/le-murmure.otf') format('opentype');font-display:swap}
   .city-hud>span:first-child,#city-entry>p{font-family:'Le Murmure',sans-serif;font-size:28px;letter-spacing:.06em}
-  #city-entry>a,.city-mode-switch{font-family:'Le Murmure',sans-serif;font-size:25px;letter-spacing:.08em;background:linear-gradient(110deg,#7130da,#204bdf);background-clip:text;-webkit-background-clip:text;color:transparent;border:0;text-decoration:none;filter:drop-shadow(0 0 7px #563be777);transition:filter .25s,transform .25s}
-  #city-entry>a:hover,.city-mode-switch:hover{color:#96e9ff;filter:drop-shadow(0 0 12px #725bff);transform:skewX(-5deg)}
-  #city-entry{isolation:isolate} #city-entry::before{content:'';position:absolute;inset:-15%;pointer-events:none;background:repeating-radial-gradient(ellipse at 50% 85%,transparent 0 48px,#77bfff35 50px,#467ac318 53px,transparent 59px 100px);animation:entryWater 6s ease-in-out infinite;z-index:0;mix-blend-mode:screen;mask-image:linear-gradient(transparent 15%,#000 65%);opacity:.65} #city-entry>*{position:relative;z-index:1}
-  @keyframes entryWater{0%,100%{transform:translateY(12px) scale(1, .94);opacity:.4}50%{transform:translateY(-22px) scale(1.08,1.12);opacity:.8}}
+  #city-entry>a{font-family:'Le Murmure',sans-serif;font-size:25px;letter-spacing:.08em;background:linear-gradient(110deg,#7130da,#204bdf);background-clip:text;-webkit-background-clip:text;color:transparent;border:0;text-decoration:none;filter:drop-shadow(0 0 7px #563be777);transition:filter .25s,transform .25s}
+  #city-entry>a:hover{color:#96e9ff;filter:drop-shadow(0 0 12px #725bff);transform:skewX(-5deg)}
+  #city-entry{isolation:isolate} #city-entry::before{display:none} #city-entry>*{position:relative;z-index:1}
   @media(prefers-reduced-motion:reduce){#city-entry::before{animation:none}}
 @font-face{font-family:'Sparky Pixel';src:url('/fonts/project-pages/jersey-15.ttf') format('truetype');font-display:swap}
 #sparky-dialogue{position:absolute;z-index:19;top:max(90px,10vh);bottom:auto;left:50%;transform:translateX(-50%);width:min(780px,calc(100vw - 48px));box-sizing:border-box;padding:20px 26px;background:linear-gradient(110deg,#073047ed,#03141eea);border:1px solid #6ae7ff;border-radius:14px;box-shadow:0 0 15px #37d9ee40;color:#bbf6ff;font:clamp(21px,2vw,28px)/1.25 'Sparky Pixel',monospace;pointer-events:none}
 #sparky-dialogue[hidden]{display:none}#sparky-dialogue strong{font-size:18px;letter-spacing:.12em;color:#79efff;text-shadow:0 0 8px #41e6ff}#sparky-dialogue p{margin:12px 0 0;white-space:pre-line}
+
+ .city-hud{justify-content:flex-end}#city-progress{font:11px PortfolioMabry,Arial,sans-serif;letter-spacing:.2em}
+ #city-entry{gap:0}
+ #city-entry>.city-entry-name{position:absolute;top:25%;margin:0;padding:0;letter-spacing:normal;width:clamp(180px,18vw,250px)}
+ .city-entry-name img,.city-entry-name :global(svg){width:100%;height:auto;display:block;filter:drop-shadow(0 0 5px #70b6ff) drop-shadow(0 0 13px #3166af)}
+ #city-entry>#city-enter{position:absolute;top:46.5%;left:50%;transform:translate(-50%,-50%);width:min(80vw,1100px);padding:0}
+ #city-entry>#city-enter:hover{transform:translate(-50%,-50%) scale(1.01)}
+ #city-enter :global(.experience-svg-main){filter:brightness(0) invert(1) drop-shadow(0 0 9px #3976d6)!important}
+ #city-enter :global(.glitch-layer){filter:brightness(1.4) sepia(1) saturate(8) hue-rotate(165deg)}
+ #city-enter :global(.glitch-purple){filter:brightness(1.3) sepia(1) saturate(8) hue-rotate(225deg)}
+ .mode-letter{position:relative;display:inline-block;white-space:pre}.mode-original,.mode-alternate{display:inline-block;transition:opacity .18s,transform .4s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--letter-index)*35ms)}
+ .mode-alternate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:26px PortfolioControl;opacity:0;transform:translateY(70%)}
+ .city-mode-switch:is(:hover,:focus-visible) .mode-original{opacity:0;transform:translateY(-70%)}.city-mode-switch:is(:hover,:focus-visible) .mode-alternate{opacity:1;transform:translateY(0)}
+ @media(prefers-reduced-motion:reduce){.mode-original,.mode-alternate{transition:none}}
+
+#city-about-hint{top:30px;bottom:auto;left:auto;right:35px;text-align:right;font:14px/1.6 PortfolioMabry,Arial,sans-serif}#city-about-hint>span{font-family:PortfolioMabry,Arial,sans-serif}@media(max-width:600px){#city-about-hint{top:24px;left:auto;right:20px;font-size:12px}}#city-entry>.city-entry-scroll{position:absolute;top:66%;left:20px;right:20px;margin:0;font:14px PortfolioMabry,sans-serif;letter-spacing:.025em;color:#c2d4ec;pointer-events:none}.city-loading-scroll{display:block;margin-top:24px;color:#b5c9e3;font:14px/1.7 PortfolioMabry,sans-serif;letter-spacing:.02em}
+@font-face{font-family:'Sparky Jersey 10';src:url('/fonts/project-pages/jersey-10.ttf') format('truetype');font-display:swap}
+#sparky-dialogue{padding:0;background:none;border:0;border-radius:0;box-shadow:none;color:#b8f5ff;font:clamp(28px,2.5vw,38px)/1.15 'Sparky Jersey 10',sans-serif;text-shadow:0 0 3px #d8fbff,0 0 12px #36bfe9,0 0 28px #1976c080}
+#sparky-dialogue strong{font:24px/1.2 'Sparky Jersey 10',sans-serif;letter-spacing:.08em;color:#86e8ff;text-shadow:0 0 5px #b1f5ff,0 0 16px #2cbae6}
+#city-scroll-intro{position:fixed;inset:0;z-index:100010;display:grid;place-items:center;padding:32px;background:#030711;color:#e4eeff;text-align:center;font-family:PortfolioMabry,sans-serif}
+#city-scroll-intro[hidden]{display:none}
+#city-scroll-intro>div{width:min(740px,100%)}
+.scroll-intro-symbol{display:block;margin-bottom:28px;font-size:48px;color:#a9d7ff;text-shadow:0 0 18px #4c8ad880}
+#city-scroll-intro h2{margin:0 0 26px;font:400 clamp(35px,5vw,60px)/1.1 'Le Murmure',sans-serif}
+#city-scroll-intro p{margin:0;font-size:clamp(16px,2vw,21px);line-height:1.65;letter-spacing:0}
+#city-scroll-intro .scroll-intro-note{margin-top:25px;font-size:14px;color:#aebed3}
 </style>
 <script>
   import * as THREE from 'three';
+  import {showScrollIntro,streamedDialogue} from '../../lib/city-render/scroll-intro.js';
   import {wheelAdvance,keyAdvance,touchAdvance,initialPixelRatio,createFrameBudget} from '../../lib/experience-controls.js';
   import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
   import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -167,6 +200,9 @@ renderer.toneMappingExposure = 0.85;
       async (gltf) => {
         try {
         const modelReady=performance.now();
+        // The city's download is over: let the synth trails download meanwhile
+        // (still attached only after entry, through prepareDeferred's cached request).
+        assets.loadAsync('/models/city-render/SynthTrails.glb');
         loadingState.stage('La ville prend forme…', 35);
         scene.add(gltf.scene);
         const clips = classifyClips(gltf.scene, gltf.animations);
@@ -317,10 +353,11 @@ renderer.toneMappingExposure = 0.85;
         }
         let targetProgress = 0;
         let currentProgress = 0;
-        const arrival = createArrivalSequence({ arrivalTime, endTime: duration, actorStart, actorEnd });
+        const arrival = createArrivalSequence({ arrivalTime, endTime: duration, actorStart, actorEnd, dialogueDuration:12 });
         const hyperspace = createHyperspaceTransition(renderer, container);
         let phase = 'city';
         let entered = false;
+        let dialogueLine='',dialogueStarted=0;
         const entry = document.querySelector<HTMLElement>('#city-entry')!;
         const startHint = document.querySelector<HTMLElement>('#city-scroll-start')!;
         const aboutHint = document.querySelector<HTMLElement>('#city-about-hint')!;
@@ -363,18 +400,36 @@ renderer.toneMappingExposure = 0.85;
         setCameraTime(0);setStationTime(actorStart);secondaryMixer.update(0);assetEffects.update(0);
         // The city is the only prerequisite for entry. Future scenes are prepared
         // after entry is available, rather than blocking it on shader polling.
+        // Where the driver compiles in parallel, the rest of the camera path is also
+        // prepared inside the progress bar (a few seconds with compact light loops),
+        // so the first scroll no longer compiles materials as they come into view.
+        const warmPoses=24;
+        function visitWarmPose(i:number,collect:()=>void){
+          const previous=lastCameraTime;
+          setCameraTime(distanceToTime(arrivalProgress*i/(warmPoses-1)));camera.updateWorldMatrix(true,false);
+          try{collect();}finally{setCameraTime(previous);camera.updateWorldMatrix(true,false);}
+        }
+        const warmCity=(progress?:(message:string,fraction?:number)=>void)=>rendering.warm(camera,warmPoses,visitWarmPose,progress).then(summary=>console.info('City warm-up',summary));
         await rendering.prepare(camera, async (step) => {
           setCameraTime(distanceToTime([0, .012, .035, 0][step]));
           camera.updateWorldMatrix(true, false);
-        }, (message, progress) => loadingState.stage(message, progress));
+        }, (message, progress) => loadingState.stage(message, progress),
+        progress => warmCity(progress).catch(error => console.warn('Préparation du parcours :', error)));
         console.info('City startup timing',{modelAndDecodeMs:Math.round(modelReady-startupStart),preparationMs:Math.round(performance.now()-modelReady),totalMs:Math.round(performance.now()-startupStart)});
         traceCityStage('entry-ready', { openingViews:rendering.stats.openingViews, gpuWaitMs:rendering.stats.openingGpuWaitMs });
         loadingState.complete();
         if (loading) loading.remove();
+        const intro=document.querySelector<HTMLElement>('#city-scroll-intro');
+        if(!await showScrollIntro(intro))return;
         entry.hidden=false;
         const clock = new THREE.Clock();
         let nextScenesReady=false, synthRequested=false;let spacePreparation:Promise<void>|null=null;
         const quality=createFrameBudget(renderer.getPixelRatio(),ratio=>{renderer.setPixelRatio(ratio);rendering.resize(innerWidth,innerHeight);projects.resize();hyperspace.resize();});
+        // While the title is shown, attach the synth trails and prepare their
+        // materials in the background. Errors are still reported where the trails
+        // are first needed (progress .04).
+        const trailsReady=assetEffects.prepareDeferred();trailsReady.catch(()=>{});
+        trailsReady.then(()=>warmCity()).catch(error=>console.warn('Préparation des traînées :',error));
         function animate() {
           if (loadingState.failed) return;
           requestAnimationFrame(animate);
@@ -422,7 +477,7 @@ renderer.toneMappingExposure = 0.85;
           const dialogue=document.querySelector<HTMLElement>('#sparky-dialogue')!;
           const speaking=view.phase==='interaction'||view.phase==='ascent';
           dialogue.hidden=!speaking;
-          if(speaking){const second=view.phase==='ascent'||(view.actorTime-actorStart)/(actorEnd-actorStart)>.43;const line=second?'Direction l’espace. Une petite semaine de vacances…\nEnfin, pour moi. Toi, t’as encore les projets à regarder.':'Bon… tu comptais visiter chaque immeuble ?\nLaisse-moi gérer la suite.';const paragraph=dialogue.querySelector('p')!;if(paragraph.textContent!==line)paragraph.textContent=line;}
+          if(speaking){const second=view.phase==='ascent'||(view.dialogueElapsed??0)>=5;const line=second?'Direction l’espace. Une petite semaine de vacances…\nEnfin, pour moi. Toi, t’as encore les projets à regarder.':'Bon… tu comptais visiter chaque immeuble ?\nLaisse-moi gérer la suite.';const paragraph=dialogue.querySelector('p')!;if(dialogueLine!==line){dialogueLine=line;dialogueStarted=performance.now();}const text=streamedDialogue(line,performance.now()-dialogueStarted);if(paragraph.textContent!==text)paragraph.textContent=text;}else{dialogueLine='';dialogue.querySelector('p')!.textContent='';}
           rendering.update(secondaryMixer.time);
           startHint.hidden=!entered||currentProgress>.025||arrival.locked;
           aboutHint.hidden=!entered||currentProgress<.19||currentProgress>.40||arrival.locked;
@@ -469,10 +524,22 @@ renderer.toneMappingExposure = 0.85;
   const uiPreview = import.meta.env.DEV && new URLSearchParams(location.search).has('preview-loading');
   if(uiPreview){
     loadingState.stage('Préparation de l’expérience…',48);
+    if(new URLSearchParams(location.search).get('preview-loading')==='scroll'){
+      loadingState.complete();loading?.remove();showScrollIntro(document.querySelector('#city-scroll-intro')).then(()=>{document.querySelector<HTMLElement>('#city-entry')!.hidden=false;});
+    }
     if(new URLSearchParams(location.search).get('preview-loading')==='entry'){
       loadingState.complete();loading?.remove();document.querySelector<HTMLElement>('#city-entry')!.hidden=false;
     }
   }
   try { if(!uiPreview)startCity().catch(error => loadingState.fail(error)); }
   catch (error) { loadingState.fail(error); }
+</script>
+
+
+
+
+<script>
+import {activateElasticTitleWhenVisible} from '../../lib/elastic-title.js';
+const name=document.querySelector<HTMLElement>('.city-entry-name');
+if(name)fetch('/svg/clement-bertrand.svg').then(r=>r.text()).then(text=>{const source=new DOMParser().parseFromString(text,'image/svg+xml').querySelector('svg');if(!source||!name.isConnected)return;const svg=document.importNode(source,true);svg.removeAttribute('width');svg.removeAttribute('height');name.replaceChildren(svg);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)activateElasticTitleWhenVisible(svg,name);}).catch(console.warn);
 </script>

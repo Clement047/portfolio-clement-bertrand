@@ -45,15 +45,16 @@ export function cityShaderVariant(object) {
   return `${materials}/${object.type}/${Boolean(object.isInstancedMesh)}/${Boolean(object.isSkinnedMesh)}/${Boolean(object.isBatchedMesh)}/${attributes}/${morphs}/${Boolean(geometry?.morphTargetsRelative)}/${Boolean(object.instanceColor)}/${Boolean(object.receiveShadow)}`;
 }
 
-export async function prepareCityView(renderer, scene, camera, cache, yieldFrame = yieldMainThread, progress = () => {}) {
+// Collects the shader variants (and textures) seen from the camera's current pose,
+// or in the whole scene, that have not been prepared yet. Insertion order is kept,
+// so variants collected for earlier poses are compiled first.
+export function collectCityVariants(scene, camera, cache, pending, textures, { wholeScene = false } = {}) {
   scene.updateMatrixWorld(true);
   camera.updateWorldMatrix(true, false);
   const frustum = new Frustum().setFromProjectionMatrix(new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
-  const pending = new Map();
-  const textures = new Set();
   scene.traverseVisible(object => {
     if (!(object.isMesh || object.isPoints || object.isLine || object.isSprite) || !object.layers.test(camera.layers)) return;
-    if (object.frustumCulled && !frustum.intersectsObject(object)) return;
+    if (!wholeScene && object.frustumCulled && !frustum.intersectsObject(object)) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     if (!materials.some(material => material?.visible)) return;
     // Shallow clones retain skinned/instanced geometry flags and share original
@@ -64,6 +65,62 @@ export async function prepareCityView(renderer, scene, camera, cache, yieldFrame
       if (value?.isTexture && !cache.textures.has(value)) textures.add(value);
     }
   });
+}
+
+export function supportsParallelShaders(renderer) {
+  return Boolean(renderer.compileAsync && renderer.extensions?.has?.('KHR_parallel_shader_compile'));
+}
+
+// With KHR_parallel_shader_compile (Chromium/ANGLE notably), the driver compiles
+// programs on its own threads. Waiting for each pair before submitting the next
+// serialised minutes of cold D3D compilation on Windows: submit every variant,
+// yielding between small groups, then wait for all of them together.
+// `target` is the render target whose output variant must be prepared (the
+// composer's linear buffer); the previous target is restored after each submission
+// so this can run while the city is already being drawn.
+export async function compileCityVariants(renderer, scene, camera, pending, cache, { yieldFrame = yieldMainThread, progress = () => {}, target } = {}) {
+  const objects = [...pending];
+  const started = performance.now();
+  let done = 0;
+  const waits = [];
+  for (let offset = 0; offset < objects.length; offset += 6) {
+    const batch = objects.slice(offset, offset + 6), view = new Group();
+    for (const [, object] of batch) view.add(object.clone(false));
+    await yieldFrame();
+    traceCityStage('shader-submit', { offset, total: objects.length });
+    const previous = renderer.getRenderTarget();
+    if (target !== undefined) renderer.setRenderTarget(target);
+    let wait;
+    try { wait = renderer.compileAsync(view, camera, scene); }
+    finally { if (target !== undefined) renderer.setRenderTarget(previous); }
+    waits.push(wait.then(() => {
+      done += batch.length;
+      for (const [variant] of batch) cache.variants.add(variant);
+      progress(`Préparation des matériaux ${done}/${objects.length}…`, done / objects.length);
+    }));
+  }
+  await Promise.all(waits);
+  // Programs are linked by now: reading their uniforms no longer waits on the driver.
+  let read = 0;
+  for (const program of renderer.info?.programs ?? []) {
+    if (cache.programs.has(program)) continue;
+    program.getUniforms?.();
+    program.getAttributes?.();
+    cache.programs.add(program);
+    if (++read % 8 === 0) await yieldFrame();
+  }
+  return { variants: objects.length, compileMs: Math.round(performance.now() - started), parallel: true };
+}
+
+export async function prepareCityView(renderer, scene, camera, cache, yieldFrame = yieldMainThread, progress = () => {}) {
+  const pending = new Map();
+  const textures = new Set();
+  collectCityVariants(scene, camera, cache, pending, textures);
+  if (supportsParallelShaders(renderer)) {
+    const result = await compileCityVariants(renderer, scene, camera, pending, cache, { yieldFrame, progress });
+    for (const texture of textures) cache.textures.add(texture);
+    return { ...result, textures: textures.size };
+  }
   const started = performance.now();
   const objects = [...pending];
   // compileAsync still performs its initial compile synchronously. A large

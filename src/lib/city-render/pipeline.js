@@ -1,7 +1,8 @@
 import {addAmbientVeil} from '../ambient-veil.js';
-import { prepareCityView, createPreparationCache, yieldMainThread } from './startup.js';
+import { prepareCityView, createPreparationCache, yieldMainThread, collectCityVariants, compileCityVariants, supportsParallelShaders } from './startup.js';
 import { traceCityStage } from './trace.js';
 import { SkyMaskPass } from './sky-mask.js';
+import { useCompactLightLoops } from './light-loops.js';
 import * as THREE from 'three';
 import { createMistBanks, createLightMotes } from './atmosphere.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -36,6 +37,8 @@ export async function indexBlenderNodes(gltf) {
 }
 
 export async function createCityRendering(renderer, scene, gltf, assets) {
+  // Same lighting, compact shader text: see light-loops.js. Must run before any compile.
+  useCompactLightLoops();
   const nodes=await indexBlenderNodes(gltf), graphs=new Map(metadata.facades.map(g=>[g.name,g]));
   const district=await loadDistrict(gltf,nodes,assets);
   const materials=new Set(), punctual=[], areas=[], scale=new THREE.Vector3();
@@ -131,8 +134,17 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
     gl_FragColor.rgb*=1.0-.12*edgeFalloff;
     // color space
   `);
+  const openingRipples=Array.from({length:8},()=>new THREE.Vector4(.5,.5,-100,0));
+  Object.assign(output.material.uniforms,{cityRipples:{value:openingRipples},cityMotionTime:{value:0},cityMotionAspect:{value:innerWidth/innerHeight},cityMotionEnabled:{value:0}});
+  output.material.fragmentShader=output.material.fragmentShader.replace('precision highp float;','precision highp float;\nuniform vec4 cityRipples[8];uniform float cityMotionTime,cityMotionAspect,cityMotionEnabled;');
+  output.material.fragmentShader=output.material.fragmentShader.replace(/void main\(\)\s*\{/,`void main(){
+   vec2 cityUv=vUv;
+   if(cityMotionEnabled>.5){for(int i=0;i<8;i++){float age=cityMotionTime-cityRipples[i].z;if(age>0.&&age<3.2){vec2 q=vUv-cityRipples[i].xy;q.x*=cityMotionAspect;float d=length(q),r=age*.42;float e=exp(-age*1.45)*exp(-pow((d-r)/.23,2.));vec2 dir=q/max(d,.02);dir.x/=cityMotionAspect;cityUv+=dir*sin((d-r)*24.)*e*.009*cityRipples[i].w;}}}
+  `).replace('texture2D( tDiffuse, vUv )','texture2D( tDiffuse, clamp(cityUv,.001,.999) )');
   addAmbientVeil(output,.85);
   let renderPass;
+  // Shared by the opening preparation and the background warm-up below.
+  const preparationCache = createPreparationCache(), preparedBackSides = new Set();
   // Calibrated against the native Blender reference at the same camera pose.
   // The exporter multiplied radiant Blender units by 683; leave material emission untouched.
   let gain=1/683;
@@ -163,6 +175,7 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
     select.addEventListener('change',()=>setLightGain(Number(select.value)));label.append(select);panel.append(label);document.body.append(panel);
   }
   return {stats,nodes,update,setLightGain,
+    setOpeningMotion(points,time,enabled){output.material.uniforms.cityRipples.value=points;output.material.uniforms.cityMotionTime.value=time;output.material.uniforms.cityMotionAspect.value=innerWidth/innerHeight;output.material.uniforms.cityMotionEnabled.value=enabled?1:0;},
     freezeStaticTransforms(){
       // Keep all animated targets and their descendants live, including attached
       // neon strips, bones and skinned surfaces. Only cache static local matrices.
@@ -179,10 +192,9 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
       stats.cachedStaticTransforms=cached;
     },
     setShadowActivity(value){animatedShadows=value;},
-    async prepare(camera, setWarmupPose, progress = () => {}){
+    async prepare(camera, setWarmupPose, progress = () => {}, beforeEntry){
       // Warm the initial movement before exposing the entry button. This covers
       // materials entering the first view without compiling the entire city.
-      const preparationCache = createPreparationCache();
       stats.openingViews = [];
       // RenderPass draws to this linear off-screen target. Compiling against
       // the screen instead creates different tone-mapping/color-space variants
@@ -190,6 +202,22 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
       const previousTarget=renderer.getRenderTarget();
       renderer.setRenderTarget(composer.readBuffer);
       try {
+      if(supportsParallelShaders(renderer)){
+        // Gather the four opening poses first, then let the driver compile them all at once.
+        const pending=new Map(),textures=new Set();
+        for(let step=0;step<4;step++){
+          await yieldMainThread();
+          await setWarmupPose?.(step);
+          update(0);
+          collectCityVariants(scene,camera,preparationCache,pending,textures);
+        }
+        const result=await compileCityVariants(renderer,scene,camera,pending,preparationCache,{target:composer.readBuffer,progress:(message,fraction)=>progress(message,55+30*(fraction??0))});
+        for(const texture of textures)preparationCache.textures.add(texture);
+        stats.openingViews.push({...result,textures:textures.size});
+        // The rest of the camera path, within the same progress bar (see warm()).
+        await beforeEntry?.((message,fraction)=>progress(message,85+11*(fraction??0)));
+        progress('Vue initiale préparée…',96);
+      } else
       for(let step=0;step<4;step++){
         await yieldMainThread();
         await setWarmupPose?.(step);
@@ -220,6 +248,56 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
         });}finally{gl.deleteSync(sync);}
       }
 
+    },
+    // After the entry is available: prepare every material the rest of the camera
+    // path will reveal (in path order, then the remainder of the city) and upload
+    // their textures, so the first scroll no longer compiles or uploads them.
+    // `visitPose(i)` must move the camera to pose i and restore it after the
+    // synchronous callback, so a frame being drawn never sees a borrowed pose.
+    // Only where the driver compiles in parallel: elsewhere a submission would
+    // block like the first use it is meant to prevent.
+    async warm(camera, poseCount, visitPose, progress = () => {}){
+      if(!supportsParallelShaders(renderer))return {skipped:true};
+      const started=performance.now(),pending=new Map(),textures=new Set();
+      for(let i=0;i<poseCount;i++){
+        visitPose(i,()=>collectCityVariants(scene,camera,preparationCache,pending,textures));
+        await yieldMainThread();
+      }
+      collectCityVariants(scene,camera,preparationCache,pending,textures,{wholeScene:true});
+      const result=await compileCityVariants(renderer,scene,camera,pending,preparationCache,{target:composer.readBuffer,progress:(message,fraction)=>progress('Préparation du parcours…',.7*(fraction??0))});
+      // The transmission pass draws double-sided glass once more with BackSide
+      // (three's renderTransmissionPass): compile that variant the same way, side
+      // flipped only for the synchronous submission, then restored.
+      const backSides=[];
+      scene.traverseVisible(object=>{
+        if(!object.isMesh)return;
+        for(const material of Array.isArray(object.material)?object.material:[object.material]){
+          if(material?.transmission>0&&material.side===THREE.DoubleSide&&!preparedBackSides.has(material)){preparedBackSides.add(material);backSides.push([object,material]);}
+        }
+      });
+      const backSideWaits=[];
+      for(const [object,material] of backSides){
+        const view=new THREE.Group();view.add(object.clone(false));
+        const previous=renderer.getRenderTarget();renderer.setRenderTarget(composer.readBuffer);
+        material.side=THREE.BackSide;material.needsUpdate=true;
+        try{backSideWaits.push(renderer.compileAsync(view,camera,scene));}
+        finally{material.side=THREE.DoubleSide;material.needsUpdate=true;renderer.setRenderTarget(previous);}
+        await yieldMainThread();
+      }
+      await Promise.all(backSideWaits);
+      result.backSides=backSides.length;
+      // Eager uploads stalled Firefox's driver for minutes: keep its first-use path.
+      let uploaded=0;
+      const toUpload=/firefox/i.test(navigator.userAgent)?[]:[...textures].filter(texture=>!preparationCache.textures.has(texture));
+      for(const texture of toUpload){
+        renderer.initTexture(texture);preparationCache.textures.add(texture);uploaded++;
+        progress('Préparation du parcours…',.7+.3*uploaded/toUpload.length);
+        await yieldMainThread();
+      }
+      const summary={...result,textures:uploaded,totalMs:Math.round(performance.now()-started)};
+      (stats.warmups??=[]).push(summary);
+      traceCityStage('warm-complete',summary);
+      return summary;
     },
     refreshAtmosphere(){stats.mistMaterials=(stats.mistMaterials??0)+applyDistrictMist(gltf.scene);},
     setCamera(camera){renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);composer.addPass(skyMask);composer.addPass(bloom);composer.addPass(smaa);composer.addPass(output);},
@@ -280,3 +358,4 @@ export async function restoreAssetSurfaces(gltf, loader, rendering, {deferTrails
     for(const {source,target} of trails.copies){for(let i=0;i<source.morphTargetInfluences.length;i++)target.morphTargetInfluences[i]=source.morphTargetInfluences[i];}
   }};
 }
+
