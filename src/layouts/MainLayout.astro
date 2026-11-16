@@ -3,27 +3,69 @@ import PortfolioHeader from '../components/PortfolioHeader.astro';
 import ProjectFooter from '../components/ProjectFooter.astro';
 import {ClientRouter} from 'astro:transitions';
 import '../styles/global.css';
+import '../styles/responsive.css';
 import PortfolioAudio from '../components/PortfolioAudio.astro';
+import SeoHead from '../components/SeoHead.astro';
 
 interface Props {
   title?: string;
+  description?: string;
 }
 
 const {
-  title = 'Clément Bertrand — Portfolio'
+  title = 'Clément Bertrand — Portfolio',
+  description: given
 } = Astro.props;
+// One description per page, written for search results and link previews.
+const path = Astro.url.pathname.replace(/\/?$/, '/');
+const descriptions: Record<string, string> = {
+  '/': 'Portfolio 3D de Clément Bertrand, étudiant en BUT MMI : une ville interactive, un voyage vers Saturne et des projets de création audiovisuelle, de design et de 3D.',
+  '/portfolio-2d/': 'Version 2D du portfolio de Clément Bertrand, étudiant en BUT MMI : projets de création audiovisuelle, de design et de 3D, présentation et contact.',
+  '/contact/': 'Contacter Clément Bertrand pour un projet de création audiovisuelle, de design ou de 3D.',
+  '/musiques/': 'Studio musical du portfolio de Clément Bertrand : écouter les morceaux composés pour le site.',
+  '/mentions-legales/': 'Mentions légales, hébergeur, crédits et politique de confidentialité du portfolio de Clément Bertrand.',
+  '/saturne/': 'Les projets de Clément Bertrand présentés autour de Saturne, dans la partie spatiale du portfolio 3D.'
+};
+const description = given ?? descriptions[path] ?? descriptions['/portfolio-2d/'];
+const noindex = path.startsWith('/test-');
+// Pages whose visible title is drawn in WebGL or as an image get a main heading for assistive tech and search engines.
+const headings: Record<string, string> = {
+  '/': 'Clément Bertrand — Portfolio 3D',
+  '/portfolio-2d/': 'Clément Bertrand — Portfolio',
+  '/contact/': 'Contact — Clément Bertrand',
+  '/saturne/': 'Projets de Clément Bertrand — Saturne'
+};
+const heading = headings[path];
 ---
 
 <!doctype html>
 <html lang="fr">
   <head><ClientRouter />
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=sparky-head-2" /><link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=sparky-head-2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    {Astro.url.pathname === '/' && <script is:inline data-astro-rerun>
+      // Decide before any city models are requested. Phones and visitors who ask for reduced motion
+      // start on the 2D version, which honours that preference; a deliberate 3D visit stays possible.
+      (() => {
+        const phone = /iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)
+          || (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) <= 600);
+        const deliberate3D = new URLSearchParams(location.search).get('experience') === '3d';
+        const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if ((phone || reducedMotion) && !deliberate3D) {
+          document.documentElement.dataset.mobileEntry = '2d';
+          location.replace('/portfolio-2d/' + location.hash);
+        }
+      })();
+    </script>}
     <title>{title}</title>
-  </head>
+    <SeoHead title={title} description={description} noindex={noindex} />
+    <style is:global>.page-heading-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
+</head>
 
   <body>
+    {heading && <h1 class="page-heading-hidden">{heading}</h1>}
     <slot /><ProjectFooter immersive={['/', '/saturne/', '/test-espace/', '/test-ville/', '/musiques/'].includes(Astro.url.pathname)} /><PortfolioHeader /><PortfolioAudio />
   </body>
 </html>

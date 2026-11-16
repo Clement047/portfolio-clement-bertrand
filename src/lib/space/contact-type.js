@@ -1,12 +1,12 @@
 import * as THREE from 'three';
-import {TTFLoader} from 'three/addons/loaders/TTFLoader.js';
-import {Font} from 'three/addons/loaders/FontLoader.js';
+import {FontLoader} from 'three/addons/loaders/FontLoader.js';
 import {TextGeometry} from 'three/addons/geometries/TextGeometry.js';
 import details from '../../data/contact.json' with {type:'json'};
 import {neonTitle} from '../neon-title.js';
 
 export async function replaceContactType(root){
- const font=new Font(await new TTFLoader().loadAsync('/fonts/les-murmures/le-murmure.ttf'));
+ // Typeface converted once from le-murmure.ttf: TTFLoader would fetch opentype.js from a third-party CDN on every visit.
+ const font=await new FontLoader().loadAsync('/fonts/les-murmures/le-murmure.typeface.json');
  for(const c of details)for(const suffix of ['Identifier','Label']){
   const target=root.getObjectByName('CONTACT_Social_'+c.id+'_'+suffix);
   if(!target?.isMesh)continue;

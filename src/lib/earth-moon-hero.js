@@ -39,7 +39,7 @@ export function mountEarthMoonHero() {
  let rippleIndex=0,lastRipple=0,lastPointer=new THREE.Vector2(-10,-10),rippleUntil=0;
  function placeTitle(){if(!titlePlane)return;const h=2*90*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2),w=h*camera.aspect*Math.min(.8,1100/innerWidth);titlePlane.position.copy(origin).addScaledVector(new THREE.Vector3(0,0,-1).applyQuaternion(baseQuaternion),90).addScaledVector(up,h*.035);titlePlane.quaternion.copy(baseQuaternion);titlePlane.scale.set(w,w*183/1326,1);titlePlane.userData.anchor=titlePlane.position.clone();focus.copy(titlePlane.position);
  if(titleHalo){titleHalo.position.copy(titlePlane.position);titleHalo.quaternion.copy(baseQuaternion);titleHalo.scale.set(w*1.12,w*183/1326*1.7,1);titleHalo.userData.anchor=titleHalo.position.clone();}
- if(namePlane){namePlane.position.copy(origin).addScaledVector(new THREE.Vector3(0,0,-1).applyQuaternion(baseQuaternion),90).addScaledVector(up,h*.20);namePlane.quaternion.copy(baseQuaternion);const nameWidth=h*camera.aspect*Math.min(.20,280/innerWidth);namePlane.scale.set(nameWidth,nameWidth*940/2151,1);namePlane.userData.anchor=namePlane.position.clone();}
+ if(namePlane){namePlane.position.copy(origin).addScaledVector(new THREE.Vector3(0,0,-1).applyQuaternion(baseQuaternion),90).addScaledVector(up,h*.20);namePlane.quaternion.copy(baseQuaternion);const nameWidth=h*camera.aspect*Math.min(camera.aspect<1?.42:.20,280/innerWidth);namePlane.scale.set(nameWidth,nameWidth*940/2151,1);namePlane.userData.anchor=namePlane.position.clone();}
  }
  function scheduleGlitch(){glitchTimer=setTimeout(()=>{if(disposed)return;glitchUntil=performance.now()+180;request();scheduleGlitch();},2400+Math.random()*2200);}
  function makeTitle(){
@@ -86,9 +86,10 @@ export function mountEarthMoonHero() {
  const transitionScene=new THREE.Scene();
  transitionScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),transitionMaterial));
  const transitionCamera=new THREE.Camera();
+ let warming=false;
  function draw(now=performance.now()) {
   frame = 0;
-  if (disposed || !visible || document.hidden) return;
+  if (disposed || warming || !visible || document.hidden) return;
   offset.lerp(desired, .065);
   // Orbit the authored camera around the title: fixed radius and a matching rotation preserve its framing.
   if(asset){orbitRotation.setFromAxisAngle(up,offset.x);pitchRotation.setFromAxisAngle(right,-offset.y);orbitRotation.multiply(pitchRotation);orbitArm.copy(origin).sub(focus).applyQuaternion(orbitRotation);camera.position.copy(focus).add(orbitArm);camera.quaternion.copy(orbitRotation).multiply(baseQuaternion);}
@@ -138,7 +139,11 @@ export function mountEarthMoonHero() {
   if(rings&&globe&&sun)ringSurface=createSaturnRings(rings,globe,sun);
   if(globe){atmosphere=createSaturnAtmosphere(globe,sun);const center=globe.getWorldPosition(new THREE.Vector3());saturnCenter=center;saturnDiameter=new THREE.Box3().setFromObject(globe).getSize(new THREE.Vector3()).x;fitSaturnEndpoint();styleSaturn(globe,rings,globe.parent.getObjectByName('SPACE_Saturn_Atmospheric_Limb'));for(const object of [globe,rings,globe.parent.getObjectByName('SPACE_Saturn_Atmospheric_Limb')])if(object)asteroidScales.push([object,object.scale.clone()]);}
   renderer.shadowMap.needsUpdate=true;
-  makeTitle();request();
+  makeTitle();
+  // Compile shaders in parallel (KHR_parallel_shader_compile) instead of blocking the page on the first frame.
+  // The scene renders into `target`, so compile with that target bound: the programs then match the real frame.
+  warming=true;renderer.setRenderTarget(target);const compiling=renderer.compileAsync(scene,camera);renderer.setRenderTarget(null);
+  compiling.catch(()=>{}).then(()=>{warming=false;request();});
  }).catch(console.error);
  if (!reduce) window.addEventListener('pointermove', pointer, {passive:true});
  const resize = () => { camera.aspect=innerWidth/innerHeight; if(camera.userData.spaceBaseFov)camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.userData.spaceBaseFov)/2)*1.08*Math.max(1,1.6/camera.aspect)));camera.updateProjectionMatrix();fitSaturnEndpoint();placeTitle();transitionMaterial.uniforms.aspect.value=camera.aspect; renderer.setSize(innerWidth,innerHeight); target.setSize(innerWidth*renderer.getPixelRatio(),innerHeight*renderer.getPixelRatio()); request(); };

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /test-ville/
+Disallow: /test-espace/
+
+Sitemap: https://clementbertrandportfolio.store/sitemap.xml

@@ -6,15 +6,18 @@ export function initProjectOrbit(root, embedded=null) {
   if(!base.pathname.endsWith('/'))base.pathname+='/';
   const url=p=>new URL(p,base).href;
   async function setup(){
-    const [THREE,componentModule,pathModule,compat,hlsModule]=embedded?.modules??await Promise.all([
-      embedded?Promise.resolve(embedded.THREE):import(/* @vite-ignore */url('vendor/three.module.js')),
-      import(/* @vite-ignore */url(embedded?'GlassVideoCardCore.js':'GlassVideoCard.js')),
-      import(/* @vite-ignore */url(embedded?'OrbitPathCore.js':'OrbitPath.js')),
-      embedded?Promise.resolve({}):import(/* @vite-ignore */url('CanvasCompatibilityRenderer.js')),
+    // The 2D page shares the bundled Three.js with its hero instead of loading a second copy from vendor/.
+    const [THREE,componentModule,pathModule,hlsModule]=embedded?.modules??await Promise.all([
+      embedded?Promise.resolve(embedded.THREE):import('three'),
+      import(/* @vite-ignore */url('GlassVideoCardCore.js')),
+      import(/* @vite-ignore */url('OrbitPathCore.js')),
       import(/* @vite-ignore */url('vendor/hls.mjs')),
     ]);
     if(disposed)return;
-    const component=embedded?componentModule.bindGlassCards(THREE):componentModule,path=embedded?pathModule.bindOrbitPath(THREE):pathModule;
+    const component=componentModule.bindGlassCards(THREE),path=pathModule.bindOrbitPath(THREE);
+    // Reduced motion (2D): each card shows a still frame instead of looping its video.
+    const still=!embedded&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const showStill=video=>video.play().then(()=>video.pause()).catch(()=>{});
     const Hls=hlsModule.default,viewport=root.querySelector('.project-orbit__viewport');
     const canvas=embedded?.canvas??root.querySelector('[data-orbit-canvas]'),status=root.querySelector('[data-orbit-status]'),resume=root.querySelector('[data-orbit-resume]');
     const scene=embedded?.scene??new THREE.Scene(),camera=embedded?.camera??new THREE.PerspectiveCamera(38,1,.1,100);
@@ -198,8 +201,11 @@ export function initProjectOrbit(root, embedded=null) {
       const video=document.createElement('video');
       video.muted=true;
       video.loop=true;
+      video.defaultMuted=true;video.setAttribute('muted','');video.setAttribute('playsinline','');
+      video.addEventListener('ended',()=>{if(disposed)return;const start=video.seekable.length?video.seekable.start(0):0;video.currentTime=start;video.play().catch(()=>{});});
       video.playsInline=true;
-      video.preload='auto';
+      // First frame only: the full file streams once the card is actually seen.
+      video.preload='metadata';
 
       if(p.poster) video.poster=url(p.poster);
 
@@ -215,7 +221,9 @@ export function initProjectOrbit(root, embedded=null) {
       }
       const card=new component.GlassVideoCard(video,{width:8,aspect:p.aspect*(7/5.8),placeholder:!p.src,title:p.title,tint:p.tint,titleDepth:.12,fontUrl:url('assets/fonts/le-murmure.otf')});if(embedded?.cardScale)card.scale.setScalar(embedded.cardScale);cards.push(card);cardParent.add(card);
       const player={video,hls:null};players.push(player);
-      const play=()=>{if(!disposed&&(!embedded||embeddedVisible))video.play().catch(()=>{resume.hidden=false;});};
+      // Only a real autoplay refusal asks for a click: a play() interrupted because the
+      // card turned away (paused on purpose) is not one.
+      const play=()=>{if(still){if(!disposed)showStill(video);return;}if(!disposed&&(!embedded||embeddedVisible))video.play().catch(error=>{if(error?.name==='NotAllowedError')resume.hidden=false;});};
       video.addEventListener('loadeddata',()=>{status.hidden=true;});
       if(!p.src){
         // Projet sans vidéo : aucun chargement réseau.
@@ -248,6 +256,8 @@ export function initProjectOrbit(root, embedded=null) {
       environment=component.createStudioEnvironment(renderer);scene.environment=environment.texture;
       scene.add(new THREE.AmbientLight(0xa8b9c9,.6));const key=new THREE.DirectionalLight(0xe2e9ef,1.2);key.position.set(-2,3,5);scene.add(key);
     }else{
+      // Only browsers without WebGL download the Canvas2D fallback.
+      const compat=await import(/* @vite-ignore */url('CanvasCompatibilityRenderer.js'));
       cards.forEach((card,i)=>fallbacks.push(new compat.CanvasCompatibilityRenderer(canvas,card,camera,{poster:url(projects[i].poster)})));
       root.dataset.renderer='canvas-compatible';
     }
@@ -351,13 +361,23 @@ return { card, i };
       order.forEach(({card},i)=>{card.body.renderOrder=i*10;card.videoMesh.renderOrder=i*10+1;card.glassMesh.renderOrder=i*10+2;card.titleMesh.renderOrder=i*10+3;});
 
 
-      // Embedded 3D only: avoid decoding/uploading all full-resolution videos
-      // when their cards are behind the camera or after leaving Saturn.
-      if(embedded){videoBudgetTime+=dt;if(videoBudgetTime>.25){videoBudgetTime=0;cards.forEach((card,i)=>{
-        const point=card.getWorldPosition(new THREE.Vector3()).project(camera);
-        const visible=embeddedVisible&&(embedded.getVisibility?.()??1)>.01&&point.z>-1&&point.z<1&&Math.abs(point.x)<1.6&&Math.abs(point.y)<1.6;
-        const video=players[i].video;if(visible&&video.paused)video.play().catch(()=>{});else if(!visible&&!video.paused)video.pause();
-      });}}
+      // 2D and 3D: decode and download only the videos of cards that are in frame
+      // and turned towards the camera, while the orbit itself is on screen. Five
+      // full-resolution videos decoding at once made every page stutter.
+      videoBudgetTime+=dt;if(videoBudgetTime>.25){videoBudgetTime=0;
+        const orbitOnScreen=embedded?embeddedVisible&&(embedded.getVisibility?.()??1)>.01:!document.hidden&&rect.bottom>0&&rect.top<innerHeight;
+        const cameraPosition=camera.getWorldPosition(new THREE.Vector3());
+        // Cards always turn towards the camera: the three nearest are the ones seen
+        // from the front; those further back in the ring keep their last frame.
+        const nearest=cards.map((card,i)=>({i,d:card.getWorldPosition(new THREE.Vector3()).distanceToSquared(cameraPosition)})).sort((a,b)=>a.d-b.d).slice(0,3).map(c=>c.i);
+        cards.forEach((card,i)=>{
+          const point=card.getWorldPosition(new THREE.Vector3()).project(camera);
+          const visible=orbitOnScreen&&nearest.includes(i)&&point.z>-1&&point.z<1&&Math.abs(point.x)<1.6&&Math.abs(point.y)<1.6;
+          const {video,hls}=players[i];
+          if(visible&&video.paused&&!(still&&video.dataset.still)){hls?.startLoad?.();if(still){video.dataset.still='1';showStill(video);}else video.play().catch(()=>{});}
+          else if(!visible&&!video.paused){video.pause();hls?.stopLoad?.();}
+        });
+      }
       // Synchronisation des descriptions avec les cartes 3D
       // Détection de la carte réellement au premier plan.
       // On privilégie la profondeur, puis l'orientation et le centrage.

@@ -4,6 +4,7 @@ import PortfolioHeader from '../../components/PortfolioHeader.astro';
 import PortfolioAudio from '../../components/PortfolioAudio.astro';
 import ProjectFooter from '../../components/ProjectFooter.astro';
 import { projects } from '../../data/projects.js';
+import SeoHead from '../../components/SeoHead.astro';
 
 export function getStaticPaths() {
   return projects.filter(project => !['sull', 'sparky', 'reflections', 'ebene', 'derriere-le-prompt'].includes(project.slug)).map(project => ({
@@ -20,7 +21,7 @@ const { project } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{project.title} — Clément Bertrand</title>
-    <meta name="description" content={project.description} />
+    <SeoHead title={`${project.title} — Clément Bertrand`} description={project.description} />
   </head>
 
   <body

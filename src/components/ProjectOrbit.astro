@@ -1,8 +1,13 @@
 ﻿---
 interface Props { id?: string; assetBase?: string; }
 const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
+import { projects } from '../data/projects.js';
+// Same order as the cards: keyboard and screen-reader access to every project without the WebGL orbit.
+const orbitOrder = ['sull','sparky','ebene','derriere-le-prompt','reflections','nokturne-studio','void'];
+const projectLinks = orbitOrder.map(slug => projects.find(project => project.slug === slug)).filter(Boolean);
 ---
-<section id={id} class="project-orbit" data-project-orbit data-asset-base={assetBase} aria-label="Projets SULL, Sparky et ÉBÈNE">
+<section id={id} class="project-orbit" data-project-orbit data-asset-base={assetBase} aria-label="Projets">
+  <nav class="project-orbit__list" aria-label="Liste des projets"><ul>{projectLinks.map(project => <li><a href={`/projets/${project.slug}/`}>{project.title}</a></li>)}</ul></nav>
   <div class="project-orbit__viewport">
     <canvas data-orbit-canvas aria-label="Cartes vidéo sur une orbite 3D"></canvas>
     <p class="project-orbit__status" data-orbit-status role="status">Chargement des projets…</p>
@@ -41,6 +46,12 @@ const { id = 'project-orbit', assetBase = '/project-orbit/' } = Astro.props;
   .project-orbit__resume { position: absolute; left: 50%; top: 60%; transform: translateX(-50%); color: #e0e2eb; background: #101222d9; border: 1px solid #697080; padding: 12px 20px; border-radius: 24px; }
   .project-orbit__hint { position: absolute; bottom: 35px; width: 100%; text-align: center; color: #9299ae; font: 11px system-ui; pointer-events: none; }
   [hidden] { display: none !important; }
+  /* Hidden until a keyboard user tabs into it, then shown as a readable list above the orbit. */
+  .project-orbit__list { position: absolute; top: 0; left: 0; z-index: 10; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .project-orbit__list:focus-within { position: sticky; top: 90px; width: auto; height: auto; overflow: visible; clip-path: none; display: flex; justify-content: center; }
+  .project-orbit__list ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 24px; margin: 0; padding: 14px 22px; list-style: none; background: #090b18f2; border: 1px solid #7164ac88; border-radius: 12px; }
+  .project-orbit__list a { color: #e8e6f6; font: 15px OrbitMabry, system-ui, sans-serif; letter-spacing: .06em; text-decoration: none; }
+  .project-orbit__list a:focus-visible { outline: 2px solid #a4ceff; outline-offset: 4px; }
 
   /* INFORMATIONS DYNAMIQUES DES PROJETS */
 
