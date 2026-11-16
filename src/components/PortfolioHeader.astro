@@ -1,21 +1,34 @@
 ---
 const links=[['Projets','/portfolio-2d/#project-orbit'],['À propos','/portfolio-2d/#presentation'],['Contact','/portfolio-2d/#contact'],['Studio','/musiques/']];
+const letters=(label:string)=>Array.from(label).map((letter,index)=>({letter:letter===' '?' ':letter,index}));
 ---
 <header class="portfolio-header" data-portfolio-header>
  <a class="portfolio-brand" href="/portfolio-2d/" aria-label="Clément Bertrand — Retour à l’accueil"><img src="/svg/clement-bertrand.svg" alt="Clément Bertrand" width="1895" height="684" /></a>
- <nav aria-label="Navigation principale">{links.map(([label,href])=><a href={href} aria-label={label}>{Array.from(label).map((letter,index)=><span class="header-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter===' '?'\u00a0':letter}</span><em>{letter===' '?'\u00a0':letter}</em></span>)}</a>)}</nav>
+ <nav aria-label="Navigation principale">{links.map(([label,href])=><a href={href} aria-label={label} data-label={label}>{Array.from(label).map((letter,index)=><span class="header-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter===' '?'\u00a0':letter}</span><em>{letter===' '?'\u00a0':letter}</em></span>)}</a>)}<a href="#" role="button" class="lang-toggle" data-lang-toggle data-no-translate lang="en" aria-label="EN — switch the site to English">{letters('EN').map(({letter,index})=><span class="header-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter}</span><em>{letter}</em></span>)}</a></nav>
  <a class="saturn-return" href="/saturne/" data-astro-reload>← Revenir à Saturne</a>
 </header>
 <script>
 import {activateElasticTitleWhenVisible} from '../lib/elastic-title.js';
 import {navigate} from 'astro:transitions/client';
+import {applyLanguage,setLang,getLang,t} from '../lib/i18n.js';
+// Nav titles are split into letters for their hover effect: rebuild them per language.
+function letterSpans(label:string){return Array.from(label).map((letter,index)=>{const outer=document.createElement('span');outer.className='header-letter';outer.style.setProperty('--i',String(index));outer.setAttribute('aria-hidden','true');const a=document.createElement('span'),b=document.createElement('em');a.textContent=b.textContent=letter===' '?' ':letter;outer.append(a,b);return outer;});}
+function relabelHeader(){
+ const header=document.querySelector<HTMLElement>('[data-portfolio-header]');if(!header)return;
+ for(const link of header.querySelectorAll<HTMLAnchorElement>('nav a[data-label]')){
+  link.replaceChildren(...letterSpans(t(link.dataset.label??'')));
+ }
+ const toggle=header.querySelector<HTMLAnchorElement>('[data-lang-toggle]');if(toggle){const english=getLang()==='en';toggle.replaceChildren(...letterSpans(english?'FR':'EN'));toggle.lang=english?'fr':'en';toggle.setAttribute('aria-label',english?'FR — afficher le site en français':'EN — switch the site to English');}
+}
+document.addEventListener('portfolio:lang',relabelHeader);
 function mountHeader(){
  const header=document.querySelector<HTMLElement>('[data-portfolio-header]');if(!header||header.dataset.ready)return;header.dataset.ready='true';
  const project=location.pathname.startsWith('/projets/'),space=project&&new URLSearchParams(location.search).get('from')==='space';
- const world=location.pathname==='/'||location.pathname.startsWith('/saturne');header.dataset.mode=space?'space':world?'world':'2d';header.hidden=location.pathname==='/'||location.pathname.startsWith('/test-espace');
+ const city=location.pathname==='/',world=city||location.pathname.startsWith('/saturne');header.dataset.mode=space?'space':world?'world':'2d';header.dataset.project=String(project);header.hidden=location.pathname.startsWith('/test-espace');
  let cityObserver:MutationObserver|undefined;
- if(location.pathname==='/'){const city=document.querySelector('#city-experience');const refresh=()=>{header.hidden=!!document.querySelector('#city-loading')||!document.querySelector<HTMLElement>('#city-entry')?.hidden;};if(city){cityObserver=new MutationObserver(refresh);cityObserver.observe(city,{attributes:true,attributeFilter:['hidden'],childList:true,subtree:true});refresh();}}
- if(world){const home=header.querySelector<HTMLAnchorElement>('.portfolio-brand');if(home){home.href='/';home.setAttribute('data-astro-reload','');}}
+ // 3D: hidden while loading; on the title screen only the FR/EN switch shows.
+ if(city){const scene=document.querySelector('#city-experience');const refresh=()=>{header.hidden=!!document.querySelector('#city-loading');header.dataset.title=String(!document.querySelector<HTMLElement>('#city-entry')?.hidden);};if(scene){cityObserver=new MutationObserver(refresh);cityObserver.observe(scene,{attributes:true,attributeFilter:['hidden'],childList:true,subtree:true});refresh();}}
+ if(world){const home=header.querySelector<HTMLAnchorElement>('.portfolio-brand');if(home){home.href=city?'/':'/saturne/';home.setAttribute('data-astro-reload','');}}
  const update=()=>header.dataset.home=String(location.pathname==='/portfolio-2d/'&&scrollY<innerHeight*.8);update();window.addEventListener('scroll',update,{passive:true});
  const projectsLink=header.querySelector<HTMLAnchorElement>('nav a[href$="#project-orbit"]');let projectTimer:number|undefined;
  const openProjects=(event:MouseEvent)=>{
@@ -30,6 +43,8 @@ function mountHeader(){
   },reduced?0:450);
  };
  projectsLink?.addEventListener('click',openProjects);
+ header.querySelector<HTMLAnchorElement>('[data-lang-toggle]')?.addEventListener('click',event=>{event.preventDefault();setLang(getLang()==='en'?'fr':'en');});
+ applyLanguage();
  const brand=header.querySelector<HTMLElement>('.portfolio-brand');
  if(brand&&!space&&!header.hidden)fetch('/svg/clement-bertrand.svg').then(r=>r.text()).then(text=>{if(!brand.isConnected)return;const source=new DOMParser().parseFromString(text,'image/svg+xml').querySelector('svg');if(!source)return;const svg=document.importNode(source,true);svg.removeAttribute('width');svg.removeAttribute('height');brand.replaceChildren(svg);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)activateElasticTitleWhenVisible(svg,brand);}).catch(console.warn);
  let timer:number;brand?.addEventListener('pointerenter',()=>{brand.classList.remove('brand-wave');void brand.offsetWidth;brand.classList.add('brand-wave');clearTimeout(timer);timer=window.setTimeout(()=>brand.classList.remove('brand-wave'),650);});
@@ -41,4 +56,14 @@ mountHeader();document.addEventListener('astro:page-load',mountHeader);
 @font-face{font-family:HeaderMabry;src:url('/fonts/project-pages/mabry-pro-light.ttf');font-display:swap}@font-face{font-family:HeaderMurmure;src:url('/fonts/les-murmures/le-murmure.otf');font-display:swap}
 body .portfolio-header{position:fixed!important;inset:25px 4vw auto!important;z-index:100003!important;display:flex;align-items:flex-start;justify-content:space-between;gap:30px;pointer-events:none}.portfolio-header[hidden]{display:none!important}.portfolio-header a{pointer-events:auto;text-decoration:none;color:#d2e8ff}.portfolio-brand{width:150px;filter:drop-shadow(0 0 8px #3166af);transition:opacity .25s}.portfolio-brand img,.portfolio-brand svg{width:100%;height:auto;display:block}.portfolio-header[data-home=true] .portfolio-brand{visibility:hidden;pointer-events:none}.portfolio-header nav{display:flex;gap:clamp(18px,3vw,44px);padding-top:8px}.portfolio-header nav>a{font:16px HeaderMabry,sans-serif;white-space:nowrap}.header-letter{display:inline-block;position:relative;white-space:pre}.header-letter>span,.header-letter>em{display:inline-block;transition:opacity .18s,transform .4s;transition-delay:calc(var(--i)*35ms);font-style:normal}.header-letter>em{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;opacity:0;transform:translateY(60%);font:26px HeaderMurmure}.portfolio-header nav a:is(:hover,:focus-visible,.is-navigating){color:#bba3ff;text-shadow:0 0 15px #8372f9}.portfolio-header nav a:is(:hover,:focus-visible,.is-navigating) .header-letter>span{opacity:0;transform:translateY(-60%)}.portfolio-header nav a:is(:hover,:focus-visible,.is-navigating) .header-letter>em{opacity:1;transform:translateY(0)}.saturn-return{display:none;font:17px HeaderMabry,sans-serif}.portfolio-header[data-mode=space] .portfolio-brand,.portfolio-header[data-mode=space] nav,.portfolio-header[data-mode=world] nav{display:none}.portfolio-header[data-mode=space] .saturn-return{display:block}.portfolio-header[data-mode=space]{justify-content:flex-start}.brand-wave img{animation:brand-wave .65s ease both}@keyframes brand-wave{0%,100%{transform:skew(0) scaleY(1)}25%{transform:skewX(6deg) scaleY(.94)}50%{transform:skewX(-4deg) scaleY(1.04)}75%{transform:skewX(2deg)}}
 @media(max-width:650px){body .portfolio-header{inset:20px 20px auto!important;gap:15px}.portfolio-brand{width:105px}.portfolio-header nav{gap:12px}.portfolio-header nav>a{font-size:12px}.header-letter>em{font-size:22px}}@media(prefers-reduced-motion:reduce){.header-letter>span,.header-letter>em{transition:none}.brand-wave img{animation:none}}
+/* Pages projets : les liens restent en haut de la page et défilent avec elle ; seul le logo reste fixé. */
+body .portfolio-header[data-project=true]{position:absolute!important}
+body .portfolio-header[data-project=true] .portfolio-brand{position:fixed;top:25px;left:4vw;z-index:100003}
+body .portfolio-header[data-project=true] nav{margin-left:auto}
+@media(max-width:650px){body .portfolio-header[data-project=true] .portfolio-brand{top:20px;left:20px}}
+/* FR/EN : même style et même animation que les titres ; seul titre visible en 3D */
+body .portfolio-header:is([data-mode=world],[data-mode=space]) nav{display:flex;margin-left:auto}
+body .portfolio-header:is([data-mode=world],[data-mode=space]) nav>a:not([data-lang-toggle]){display:none}
+body .portfolio-header[data-title=true] .portfolio-brand{visibility:hidden;pointer-events:none}
+body .portfolio-header nav{align-items:flex-start}
 </style>

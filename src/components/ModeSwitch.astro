@@ -1,9 +1,21 @@
 ---
 const {mode='2d'}=Astro.props;
 const label=mode==='3d'?'Version 3D ↗':'Version 2D ↗';
-const href=mode==='3d'?'/':'/portfolio-2d/';
+const href=mode==='3d'?'/?experience=3d':'/portfolio-2d/';
 ---
-<a class="portfolio-mode-link city-mode-switch" href={href} aria-label={mode==='3d'?'Passer à la version 3D':'Passer à la version 2D'} data-astro-reload>{Array.from(label).map((letter,index)=><span class="switch-letter" style={`--i:${index}`} aria-hidden="true"><span class="switch-original">{letter===' '?'\u00a0':letter}</span><span class="switch-alternate">{letter===' '?'\u00a0':letter}</span></span>)}</a>
+<a class="portfolio-mode-link city-mode-switch" href={href} aria-label={mode==='3d'?'Passer à la version 3D':'Passer à la version 2D'} data-astro-reload data-mode-label={label}>{Array.from(label).map((letter,index)=><span class="switch-letter" style={`--i:${index}`} aria-hidden="true"><span class="switch-original">{letter===' '?'\u00a0':letter}</span><span class="switch-alternate">{letter===' '?'\u00a0':letter}</span></span>)}</a>
+<script>
+import {t} from '../lib/i18n.js';
+// Split into letters for the hover effect: rebuild the label in the active language.
+function relabelModeSwitch(){
+ for(const link of document.querySelectorAll<HTMLElement>('[data-mode-label]')){
+  // Clone the server-rendered letter: it carries Astro's scoped-style attribute, a fresh span would not.
+  const model=link.querySelector('.switch-letter');if(!model)continue;
+  link.replaceChildren(...Array.from(t(link.dataset.modeLabel??'')).map((letter,index)=>{const outer=model.cloneNode(true) as HTMLElement;outer.style.setProperty('--i',String(index));for(const part of Array.from(outer.children))part.textContent=letter===' '?' ':letter;return outer;}));
+ }
+}
+document.addEventListener('portfolio:lang',relabelModeSwitch);relabelModeSwitch();document.addEventListener('astro:page-load',relabelModeSwitch);
+</script>
 <style>
 .portfolio-mode-link{position:fixed!important;right:30px!important;bottom:26px!important;top:auto!important;left:auto!important;z-index:100001!important;display:block!important;visibility:visible;background:transparent!important;border:0!important;box-shadow:none!important;text-decoration:none;white-space:nowrap}
 .switch-letter{position:relative;display:inline-block;white-space:pre}.switch-original,.switch-alternate{display:inline-block;transition:opacity .18s,transform .4s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--i)*35ms)}.switch-alternate{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;font:26px PortfolioControl,sans-serif;opacity:0;transform:translateY(70%)}.portfolio-mode-link:is(:hover,:focus-visible) .switch-original{opacity:0;transform:translateY(-70%)}.portfolio-mode-link:is(:hover,:focus-visible) .switch-alternate{opacity:1;transform:translateY(0)}
