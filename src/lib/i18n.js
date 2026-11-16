@@ -6,6 +6,8 @@
 import dictionary from '../data/i18n-en.json';
 
 const STORAGE_KEY = 'portfolio-lang';
+// The choice lasts for the visit only: every new visit starts in French.
+try { localStorage.removeItem(STORAGE_KEY); } catch {}
 const ATTRIBUTES = ['alt', 'aria-label', 'title', 'placeholder'];
 const normalize = text => text.replace(/\s+/g, ' ').trim();
 const entries = new Map(Object.entries(dictionary).map(([fr, en]) => [normalize(fr), en]));
@@ -16,7 +18,7 @@ const patterns = [
 ];
 
 export function getLang() {
-  try { return localStorage.getItem(STORAGE_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; }
+  try { return sessionStorage.getItem(STORAGE_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; }
 }
 
 function translate(text) {
@@ -105,6 +107,6 @@ export function applyLanguage() {
 }
 
 export function setLang(lang) {
-  try { localStorage.setItem(STORAGE_KEY, lang === 'en' ? 'en' : 'fr'); } catch {}
+  try { sessionStorage.setItem(STORAGE_KEY, lang === 'en' ? 'en' : 'fr'); } catch {}
   applyLanguage();
 }

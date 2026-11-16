@@ -289,7 +289,6 @@
   "(Apache 2.0), effet d’hyperespace adapté de Seer.js (MIT), site construit avec": "(Apache 2.0), hyperspace effect adapted from Seer.js (MIT), site built with",
   "Sauf mention ci-dessus, les musiques, sons, vidéos et scènes 3D du portfolio sont des créations de Clément Bertrand ou des ressources libres de droits.": "Unless stated above, the music, sounds, videos and 3D scenes of the portfolio are created by Clément Bertrand or are royalty-free resources.",
   "Les échanges sont conservés au plus trois ans après le dernier contact, puis supprimés. Vous pouvez demander leur suppression à tout moment à l’adresse de contact ci-dessus.": "Messages are kept for at most three years after the last contact, then deleted. You can ask for their deletion at any time at the contact address above.",
-  "Le site n’utilise ni cookie, ni outil de mesure d’audience, ni publicité. Il mémorise seulement dans le stockage de votre navigateur votre langue (français ou anglais), vos préférences sonores et la musique choisie, ainsi que, le temps de la visite, votre position dans le parcours 3D. Ces informations ne quittent pas votre appareil et s’effacent depuis les paramètres du navigateur.": "The site uses no cookies, no audience measurement and no advertising. It only stores in your browser your language (French or English), your sound preferences and the chosen music, and, for the length of the visit, your position in the 3D journey. This information never leaves your device and can be cleared from your browser settings.",
   "Maquettes de SULL sur écran, ordinateur portable et smartphone, avec un ticket de cinéma et du pop-corn": "SULL mockups on a monitor, laptop and smartphone, with a cinema ticket and popcorn",
   "Portrait de Clément Bertrand": "Portrait of Clément Bertrand",
   "Page film de SULL consacrée à 2001 : l’Odyssée de l’espace": "SULL film page for 2001: A Space Odyssey",
@@ -328,5 +327,6 @@
   "Gros plan sur le sabre laser rouge de Dark Vador": "Close-up of Darth Vader’s red lightsaber",
   "Scène des affiches en cours de création dans Blender": "The posters’ scene being built in Blender",
   "Logo ÉBÈNE, version beige": "ÉBÈNE logo, beige version",
-  "FR — afficher le site en français": "FR — afficher le site en français"
+  "FR — afficher le site en français": "FR — afficher le site en français",
+  "Le site n’utilise ni cookie, ni outil de mesure d’audience, ni publicité. Il mémorise seulement dans le stockage de votre navigateur vos préférences sonores et la musique choisie, ainsi que, le temps de la visite, la langue choisie et votre position dans le parcours 3D. Ces informations ne quittent pas votre appareil et s’effacent depuis les paramètres du navigateur.": "The site uses no cookies, no audience measurement and no advertising. It only stores in your browser your sound preferences and the chosen music, and, for the length of the visit, the chosen language and your position in the 3D journey. This information never leaves your device and can be cleared from your browser settings."
 }
