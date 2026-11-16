@@ -1,0 +1,52 @@
+/* Shared small-screen layout. Desktop art direction stays in the page styles. */
+html { scroll-padding-top: 100px; }
+@media (max-width: 900px) {
+  .v2-shell.project-reflow { height:auto!important; overflow:visible; }
+  .contact-intro { grid-template-columns:1fr!important; gap:32px!important; }
+  .contact-shell { width:calc(100% - 48px)!important; padding-top:125px!important; }
+  .contact-identifiers { min-width:0; width:100%; }
+  .contact-identifiers a { font-size:clamp(16px,3.1vw,25px)!important; align-items:center; }
+  .contact-identifiers a span { min-width:0; overflow-wrap:anywhere; }
+  .contact-identifiers svg { flex:none; }
+  .contact-form { max-width:100%; }
+  .project-footer-bottom { flex-wrap:wrap; line-height:1.6; }
+}
+@media (max-width: 650px) {
+  body .portfolio-header { inset:calc(10px + env(safe-area-inset-top)) 16px auto!important; gap:6px!important; flex-wrap:wrap; align-items:center!important; }
+  body .portfolio-header .portfolio-brand { width:102px; flex:none; }
+  body .portfolio-header nav { width:100%; display:flex; justify-content:space-between; gap:6px; padding:0; }
+  body .portfolio-header nav>a { display:flex; align-items:center; min-height:44px; font-size:14px; }
+  body .portfolio-header[data-home=true] .portfolio-brand { display:none; }
+  /* 3D : seul FR/EN reste dans le header */
+  body .portfolio-header:is([data-mode=world],[data-mode=space]) nav { display:flex; width:auto; margin-left:auto; }
+  body .portfolio-header:is([data-mode=world],[data-mode=space]) nav>a:not([data-lang-toggle]) { display:none; }
+  .saturn-return { min-height:44px; align-content:center; }
+  .contact-intro h2 { font-size:clamp(44px,12vw,60px)!important; }
+  .presentation-content { padding:120px 22px 40px!important; }
+  .presentation-copy { font-size:17px!important; line-height:1.65!important; }
+  .portrait { height:clamp(330px,110vw,470px)!important; }
+  .portrait-help { bottom:24px!important; font-size:22px!important; }
+  .contact-landing,.presentation { scroll-margin-top:110px!important; }
+  .portfolio-mode-link,.city-mode-switch { right:max(16px,env(safe-area-inset-right))!important; bottom:calc(12px + env(safe-area-inset-bottom))!important; font-size:14px!important; min-height:44px; display:flex; align-items:center; }
+  .project-footer { padding-bottom:100px!important; }
+  .footer-navigation { justify-content:flex-start!important; gap:8px 20px!important; }
+  .footer-navigation a,.project-footer-bottom a { min-height:44px; display:flex; align-items:center; }
+  .project-orbit__info { left:20px!important; right:20px!important; width:auto!important; top:auto!important; bottom:82px!important; transform:none!important; }
+  .project-orbit__info.is-visible { transform:none!important; }
+  .project-orbit__info-description { font-size:14px!important; line-height:1.5!important; }
+  .project-orbit__info-index { margin-bottom:10px!important; }
+  .project-orbit__info-skills { margin-top:12px!important; gap:6px!important; }
+  .project-orbit__skill { padding:7px 9px!important; font-size:11px!important; }
+  .project-orbit__hint { bottom:65px!important; padding:0 20px; }
+  .studio-interface { padding:110px 16px 90px!important; }
+  .studio-glass { max-width:100%; max-height:calc(100svh - 200px); }
+  .studio-glass:not(.studio-world-cards) { width:100%; }
+  .music-list button { min-height:100px; }
+  #sparky-dialogue { max-width:calc(100vw - 40px); }
+}
+@media (max-height:500px) and (orientation:landscape) {
+  body .portfolio-header nav { width:auto; gap:20px; }
+  .project-orbit__info-description { display:none; }
+  .project-orbit__info-skills { display:none; }
+  .project-orbit__info { bottom:65px!important; }
+}
