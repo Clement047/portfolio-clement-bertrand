@@ -14,8 +14,11 @@ export function createFrameBudget(initial, onChange) {
   const average=total/samples;total=0;samples=0;
   stable=average<.0178?stable+1:0;
   if(cooldown>0)return;
+  // Below .72 distant windows and tower edges turn coarse: keep this floor.
   const floor=Math.min(initial,.72);
-  const next=average>.021?Math.max(floor,ratio*.86):stable>=18?Math.min(initial,ratio+.06):ratio;
+  // Frame cost follows the pixel count (ratio²): a slow frame jumps straight to the
+  // ratio that should reach ~19 ms, instead of 14 % steps every 4 s (20 s+ of stutter).
+  const next=average>.021?Math.max(floor,ratio*Math.min(.86,Math.max(.6,Math.sqrt(.019/average)))):stable>=18?Math.min(initial,ratio+.06):ratio;
   if(Math.abs(next-ratio)>.015){ratio=next;stable=0;cooldown=4;onChange(ratio);}
  }};
 }

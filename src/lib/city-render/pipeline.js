@@ -212,7 +212,9 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
           collectCityVariants(scene,camera,preparationCache,pending,textures);
         }
         const result=await compileCityVariants(renderer,scene,camera,pending,preparationCache,{target:composer.readBuffer,progress:(message,fraction)=>progress(message,55+30*(fraction??0))});
-        for(const texture of textures)preparationCache.textures.add(texture);
+        // Upload the opening textures one per task: the first render no longer sends
+        // them all at once (a ~1 s freeze that stalled the loading animation).
+        for(const texture of textures){renderer.initTexture(texture);preparationCache.textures.add(texture);await yieldMainThread();}
         stats.openingViews.push({...result,textures:textures.size});
         // The rest of the camera path, within the same progress bar (see warm()).
         await beforeEntry?.((message,fraction)=>progress(message,85+11*(fraction??0)));

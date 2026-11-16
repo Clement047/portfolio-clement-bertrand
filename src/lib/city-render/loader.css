@@ -30,3 +30,13 @@ body:has(#city-loading) .city-mode-switch,#city-experience:has(#city-loading) .c
 #city-experience #city-loading .loader-headphones{width:36px;height:36px}
 #city-experience #city-loading .loader-audio{margin:12px 0 24px}
 @media(max-height:650px){#city-experience #city-loading .loader-sparky{height:150px;width:120px}#city-experience #city-loading .loader-audio{font-size:25px}}
+
+/* Instructions de défilement écrites pendant le chargement (remplace l'ancien écran dédié) */
+#city-experience #city-loading .loader-intro{width:min(560px,calc(100vw - 48px));margin:30px 0 0 50%;transform:translateX(-50%);min-height:8.5em;text-align:center}
+#city-experience #city-loading .loader-intro-title{margin:0 0 12px;font:400 clamp(24px,2.6vw,32px)/1.15 'Le Murmure',sans-serif;color:#e4eeff;letter-spacing:.02em;min-height:1.15em}
+#city-experience #city-loading .loader-intro-text{margin:0;font:clamp(14px,1.4vw,17px)/1.65 Lexend,Arial,sans-serif;color:#aebed3;white-space:pre-line}
+#city-experience #city-loading .loader-intro-text{white-space:normal}
+#city-experience #city-loading .loader-word{display:inline-block;white-space:nowrap}
+#city-experience #city-loading .loader-letter{display:inline-block;opacity:0;animation:loaderLetter .22s ease-out forwards;will-change:opacity}
+@keyframes loaderLetter{to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#city-experience #city-loading .loader-letter{animation:none;opacity:1}}
