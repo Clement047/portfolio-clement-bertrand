@@ -4,7 +4,7 @@ Cette grille porte sur **mon** site : une ville 3D (accueil `/`), un voyage spat
 
 **Conditions de mesure.**
 - Lighthouse 12 sous Microsoft Edge (profil ordinateur), le 16 novembre 2026.
-- Il a été lancé sur le build de production, servi en local avec compression. C’est ce build qui est publié.
+- Il a été lancé sur le build de production, servi en local avec compression, puis contrôlé sur le site en ligne après publication (2D, SULL, mentions). Les fourchettes donnent les écarts observés entre plusieurs mesures.
 - Les en-têtes HTTP, les redirections et les statuts ont été relevés sur le site en ligne avec `curl -I`.
 - Les poids des fichiers viennent d’un relevé disque (`stat`). Un Mio vaut 1 048 576 octets.
 
@@ -15,12 +15,12 @@ Les quatre chiffres sont, dans l’ordre : performance, accessibilité, bonnes p
 | Page | Scores | LCP | TBT | CLS | Transfert mesuré |
 |---|---|---|---|---|---|
 | `/` (ville 3D) | 62 / 100 / 100 / 100 | 1,7 s | 2,3 s | 0,008 | 57 à 68 Mio pendant la mesure |
-| `/portfolio-2d/` | 70 / 100 / 100 / 100 | 0,9 s | 0,7 à 0,9 s | 0 | 15,6 à 19,2 Mio |
+| `/portfolio-2d/` | 64 à 72 / 100 / 100 / 100 | 0,9 s | 0,7 à 1,5 s | 0 | 15,6 à 21,2 Mio |
 | `/contact/` | 98 / 100 / 100 / 100 | 0,7 s | 0 ms | 0,083 | 491 Kio |
-| `/mentions-legales/` | 94 / 100 / 100 / 100 | 0,7 s | 180 ms | 0,001 | 488 Kio |
+| `/mentions-legales/` | 94 à 100 / 100 / 100 / 100 | 0,7 s | 180 ms | 0,001 | 488 Kio |
 | `/musiques/` | 63 / 100 / 100 / 100 | 0,8 s | 3,2 s | 0 | 4,0 Mio |
 | `/saturne/` | 47 à 78 / 100 / 100 / 100 | 0,9 à 9,9 s | 0,4 à 0,6 s | 0,002 | 15,1 Mio |
-| `/projets/sull/` | 96 / 100 / 100 / 100 | 1,4 s | 0 ms | 0 | 1,7 Mio |
+| `/projets/sull/` | 96 à 98 / 100 / 100 / 100 | 1,4 s | 0 ms | 0 | 1,7 Mio |
 | `/projets/sparky/` | 99 / 100 / 100 / 100 | 1,0 s | 0 ms | 0 | 842 Kio |
 | `/projets/ebene/` | 90 / 96 / 100 / 100 | 2,0 s | 0 ms | 0 | 4,2 Mio |
 | `/projets/derriere-le-prompt/` | 96 / 100 / 100 / 100 | 1,3 s | 0 ms | 0 | 1,8 Mio |
@@ -73,7 +73,7 @@ Les deux pages notées sous 100 en accessibilité ou en performance sont des cho
 | **Poids des modèles 3D.** La ville est la ressource la plus lourde du site. | Relevé disque des fichiers chargés par le code. Contrôle visuel avant/après. | 82,6 Mio pour le parcours 3D complet. | Modèles nettoyés (`dedup`) et quantifiés (glTF-Transform), compression meshopt. Ville servie en `.gz`. |
 | **Images.** Les fiches utilisaient des PNG jusqu’à 14,4 Mio. | Liste des PNG référencés dans le code (`sharp`). Comparaison pixel par pixel, sur fond neutre, entre l’original et la conversion (PSNR). | 92 images concernées. | Conversion en WebP (qualité 90, transparence conservée, largeur plafonnée à 2880 px, soit deux fois la maquette). PSNR de **36,4 dB au minimum** : aucune différence visible. |
 | **Stabilité de la mise en page.** | Audit CLS de Lighthouse. Recherche de l’élément qui bouge. | Sur SULL, le pied de page sautait (CLS 0,43). La hauteur de la page était calculée par un script différé, après le premier affichage. | La hauteur est calculée dans un script en ligne, juste après le contenu et avant le premier affichage. CLS de 0 sur les cinq fiches. |
-| **Blocage du fil principal** sur l’accueil 2D. | Tâches longues et temps de script relevés par Lighthouse. | Deux copies de Three.js étaient chargées : l’une pour l’accueil, l’autre pour l’orbite. S’y ajoutait la compilation synchrone des shaders du titre. TBT de 1,0 s en ligne et de 3,1 s mesuré en local. | L’orbite utilise la même copie de Three.js que l’accueil. Le rendu de secours en Canvas 2D n’est téléchargé que sans WebGL. Les shaders de l’accueil sont compilés en parallèle (`compileAsync`). TBT de 0,7 à 0,9 s. |
+| **Blocage du fil principal** sur l’accueil 2D. | Tâches longues et temps de script relevés par Lighthouse. | Deux copies de Three.js étaient chargées : l’une pour l’accueil, l’autre pour l’orbite. S’y ajoutait la compilation synchrone des shaders du titre. TBT de 1,0 s en ligne et de 3,1 s mesuré en local. | L’orbite utilise la même copie de Three.js que l’accueil. Le rendu de secours en Canvas 2D n’est téléchargé que sans WebGL. Les shaders de l’accueil sont compilés en parallèle (`compileAsync`). TBT de 0,7 à 1,5 s selon les mesures (site en ligne compris), contre 1,0 à 3,1 s avant. |
 | **Polices.** | Lighthouse (ressources bloquant l’affichage). Recherche des domaines externes dans le build. | Lexend était chargée depuis Google Fonts sur toutes les pages : 2,2 s de blocage du premier affichage, et l’adresse IP du visiteur transmise à Google. | Lexend est servie depuis le site. VOID passe de 72 à 99, Contact de 90 à 98. |
 | **Coût des scènes WebGL.** | Lighthouse sur `/`, `/musiques/` et `/saturne/`. Relevés GPU antérieurs : environ 32 ms par million de pixels, dont 90 % d’éclairage. | TBT de 2,3 à 3,2 s : c’est la préparation des scènes. La page reste affichée et le chargement est annoncé. Sur `/saturne/`, le LCP varie de 0,9 à 9,9 s selon que la description du projet apparaît ou non, une fois la scène chargée, pendant la mesure. | La 3D est réservée aux ordinateurs : téléphones et mouvement réduit vont en 2D. Compilation des shaders en parallèle, résolution adaptative au temps de rendu (plancher 0,72), boucles d’éclairage compactes, vidéos décodées seulement pour les trois cartes visibles. |
 | **Cache et compression HTTP.** | `curl -I` sur le site en ligne. | Compression gzip active. Fichiers `/_astro/` (noms changeant à chaque build) : cache d’un an `immutable`. Modèles : 7 jours. Pages HTML : `no-cache`. En-tête `X-Content-Type-Options: nosniff`. | — |
