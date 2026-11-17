@@ -14,3 +14,5 @@ La réception n’est pas vérifiée avant cette activation. Aucun message réel
 Le formulaire conserve son contenu si le service signale une activation nécessaire ou une erreur. L’interface n’annonce une réussite qu’après confirmation du service. Le bouton Envoyer évite les doubles envois pendant une requête. Les noms de fichiers sont affichés comme texte, et le type multipart conserve les pièces jointes.
 
 Documentation du service : https://formsubmit.co/documentation (sections File uploads et AJAX Forms).
+
+En cas de délai dépassé, le bouton « Activer le formulaire / envoyer via FormSubmit » soumet directement les champs et la pièce jointe au service, avec son contrôle anti-spam. Cette action est volontaire pour éviter une deuxième tentative automatique. Clément doit confirmer le lien reçu par e-mail.
