@@ -20,7 +20,7 @@ export function initProjectOrbit(root, embedded=null) {
     const still=!embedded&&matchMedia('(prefers-reduced-motion: reduce)').matches;
     const showStill=video=>video.play().then(()=>video.pause()).catch(()=>{});
     const Hls=hlsModule.default,viewport=root.querySelector('.project-orbit__viewport');
-    const canvas=embedded?.canvas??root.querySelector('[data-orbit-canvas]'),status=root.querySelector('[data-orbit-status]'),resume=root.querySelector('[data-orbit-resume]');
+    const canvas=embedded?.canvas??root.querySelector('[data-orbit-canvas]'),status=root.querySelector('[data-orbit-status]');
     const scene=embedded?.scene??new THREE.Scene(),camera=embedded?.camera??new THREE.PerspectiveCamera(38,1,.1,100);
     const cardParent=embedded?.group??scene;
 
@@ -191,10 +191,10 @@ export function initProjectOrbit(root, embedded=null) {
       if(embedded)reveal();else requestAnimationFrame(reveal);
     }
 
-    const players=[],cards=[],fallbacks=[];let stopQuality=()=>{},renderer,environment,resizeObserver,angle=-.48,last=performance.now(),videoBudgetTime=0;
+    const players=[],cards=[],fallbacks=[],gestureEvents=['pointerdown','touchend','keydown'];let gestureArmed=false,stopQuality=()=>{},renderer,environment,resizeObserver,angle=-.48,last=performance.now(),videoBudgetTime=0;
     cleanup=()=>{
       cancelAnimationFrame(frame);resizeObserver?.disconnect();stopQuality();
-      resume.removeEventListener('click',resumeAll);
+      stopGestureWait();
       players.forEach(p=>{p.video.pause();p.hls?.destroy();p.video.removeAttribute('src');p.video.load();p.video.remove();});
       cards.forEach(c=>c.dispose());fallbacks.forEach(f=>f.dispose());if(!embedded)renderer?.dispose();environment?.dispose();cards.forEach(c=>c.parent?.remove(c));
     };
@@ -339,8 +339,12 @@ export function initProjectOrbit(root, embedded=null) {
     status.hidden=true;
     // The cards follow the shared quality level (set by the 3D city only).
     if(!embedded)stopQuality=onQualityChange(()=>{renderer?.setPixelRatio(cappedPixelRatio(1.7));resize();});
-    function resumeAll(){players.forEach(p=>p.video.play().catch(()=>{}));resume.hidden=true;}
-    resume.addEventListener('click',resumeAll);
+    // Safari (low-power mode) may refuse to start even muted videos on its own: no button,
+    // the visible cards start on the visitor's first touch, click or key press.
+    
+    function startVisibleVideos(){stopGestureWait();players.forEach(p=>{if(p.loading&&p.video.paused)p.video.play().catch(()=>{});});}
+    function stopGestureWait(){if(!gestureArmed)return;gestureArmed=false;gestureEvents.forEach(type=>document.removeEventListener(type,startVisibleVideos,true));}
+    function waitForGesture(){if(gestureArmed||disposed)return;gestureArmed=true;gestureEvents.forEach(type=>document.addEventListener(type,startVisibleVideos,{capture:true,passive:true}));}
     function animate(now){
       if(disposed)return;if(!embedded)frame=requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;
       const rect=root.getBoundingClientRect();
@@ -379,7 +383,7 @@ return { card, i };
           if(visible&&video.paused&&!(still&&video.dataset.still)){
             if(players[i].src&&!video.getAttribute('src')){video.src=players[i].src;video.load();}
             if(players[i].attach&&!players[i].hls){players[i].attach();players[i].loading=true;}
-            if(!players[i].loading){players[i].loading=true;players[i].hls?.startLoad?.();}if(still){video.dataset.still='1';showStill(video);}else video.play().catch(error=>{if(error?.name==='NotAllowedError')resume.hidden=false;});}
+            if(!players[i].loading){players[i].loading=true;players[i].hls?.startLoad?.();}if(still){video.dataset.still='1';showStill(video);}else video.play().catch(error=>{if(error?.name==='NotAllowedError')waitForGesture();});}
           else if(!visible){if(!video.paused)video.pause();if(players[i].loading){players[i].loading=false;players[i].hls?.stopLoad?.();}}
         });
       }

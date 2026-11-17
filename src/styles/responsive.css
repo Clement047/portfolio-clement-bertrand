@@ -17,6 +17,8 @@ html { scroll-padding-top: 100px; }
   body .portfolio-header nav { width:100%; display:flex; justify-content:space-between; gap:6px; padding:0; }
   body .portfolio-header nav>a { display:flex; align-items:center; min-height:44px; font-size:14px; }
   body .portfolio-header[data-home=true] .portfolio-brand { display:none; }
+  /* 2D : a dark band behind the fixed header once past the opening screen, so it never sits on the text. */
+  body .portfolio-header[data-mode="2d"]:not([data-home=true]):not([data-project=true])::before { content:''; position:fixed; inset:0 0 auto; height:calc(140px + env(safe-area-inset-top)); background:linear-gradient(#050817 74%,#05081700); z-index:-1; pointer-events:none; }
   /* 3D : seul FR/EN reste dans le header */
   body .portfolio-header:is([data-mode=world],[data-mode=space]) nav { display:flex; width:auto; margin-left:auto; }
   body .portfolio-header:is([data-mode=world],[data-mode=space]) nav>a:not([data-lang-toggle]) { display:none; }
@@ -49,4 +51,9 @@ html { scroll-padding-top: 100px; }
   .project-orbit__info-description { display:none; }
   .project-orbit__info-skills { display:none; }
   .project-orbit__info { bottom:65px!important; }
+}
+
+/* Phones: the 3D journey is not available there (memory), so its link is not offered. */
+@media (max-width: 650px) and (pointer: coarse) {
+  a.portfolio-mode-link[href^="/?experience"] { display:none!important; }
 }

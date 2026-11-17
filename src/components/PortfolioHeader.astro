@@ -4,7 +4,8 @@ const letters=(label:string)=>Array.from(label).map((letter,index)=>({letter:let
 ---
 <header class="portfolio-header" data-portfolio-header>
  <a class="portfolio-brand" href="/portfolio-2d/" aria-label="Clément Bertrand — Retour à l’accueil"><img src="/svg/clement-bertrand.svg" alt="Clément Bertrand" width="1895" height="684" /></a>
- <nav aria-label="Navigation principale">{links.map(([label,href])=><a href={href} aria-label={label} data-label={label}>{Array.from(label).map((letter,index)=><span class="header-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter===' '?'\u00a0':letter}</span><em>{letter===' '?'\u00a0':letter}</em></span>)}</a>)}<a href="#" role="button" class="lang-toggle" data-lang-toggle data-no-translate lang="en" aria-label="EN — switch the site to English">{letters('EN').map(({letter,index})=><span class="header-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter}</span><em>{letter}</em></span>)}</a></nav>
+ <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="portfolio-menu" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+ <nav id="portfolio-menu" aria-label="Navigation principale">{links.map(([label,href])=><a href={href} aria-label={label} data-label={label}>{Array.from(label).map((letter,index)=><span class="header-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter===' '?'\u00a0':letter}</span><em>{letter===' '?'\u00a0':letter}</em></span>)}</a>)}<a href="#" role="button" class="lang-toggle" data-lang-toggle data-no-translate lang="en" aria-label="EN — switch the site to English">{letters('EN').map(({letter,index})=><span class="header-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter}</span><em>{letter}</em></span>)}</a></nav>
  <a class="saturn-return" href="/saturne/" data-astro-reload>← Revenir à Saturne</a>
 </header>
 <script>
@@ -44,11 +45,18 @@ function mountHeader(){
  };
  projectsLink?.addEventListener('click',openProjects);
  header.querySelector<HTMLAnchorElement>('[data-lang-toggle]')?.addEventListener('click',event=>{event.preventDefault();setLang(getLang()==='en'?'fr':'en');});
+ // Phones: the titles live in a full-screen menu opened by the burger button.
+ const menuButton=header.querySelector<HTMLButtonElement>('[data-menu-toggle]'),menu=header.querySelector<HTMLElement>('#portfolio-menu');
+ const setMenu=(open:boolean)=>{if(!menuButton)return;header.dataset.menu=open?'open':'closed';menuButton.setAttribute('aria-expanded',String(open));menuButton.setAttribute('aria-label',t(open?'Fermer le menu':'Ouvrir le menu'));document.documentElement.classList.toggle('menu-open',open);if(open)menu?.querySelector<HTMLElement>('a')?.focus();};
+ menuButton?.addEventListener('click',()=>setMenu(header.dataset.menu!=='open'));
+ menu?.addEventListener('click',event=>{if((event.target as HTMLElement).closest('a:not([data-lang-toggle])'))setMenu(false);});
+ const menuKey=(event:KeyboardEvent)=>{if(event.key==='Escape'&&header.dataset.menu==='open'){setMenu(false);menuButton?.focus();}};document.addEventListener('keydown',menuKey);
+ setMenu(false);
  applyLanguage();
  const brand=header.querySelector<HTMLElement>('.portfolio-brand');
  if(brand&&!space&&!header.hidden)fetch('/svg/clement-bertrand.svg').then(r=>r.text()).then(text=>{if(!brand.isConnected)return;const source=new DOMParser().parseFromString(text,'image/svg+xml').querySelector('svg');if(!source)return;const svg=document.importNode(source,true);svg.removeAttribute('width');svg.removeAttribute('height');brand.replaceChildren(svg);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)activateElasticTitleWhenVisible(svg,brand);}).catch(console.warn);
  let timer:number;brand?.addEventListener('pointerenter',()=>{brand.classList.remove('brand-wave');void brand.offsetWidth;brand.classList.add('brand-wave');clearTimeout(timer);timer=window.setTimeout(()=>brand.classList.remove('brand-wave'),650);});
- document.addEventListener('astro:before-swap',()=>{window.removeEventListener('scroll',update);clearTimeout(timer);clearTimeout(projectTimer);projectsLink?.removeEventListener('click',openProjects);cityObserver?.disconnect();},{once:true});
+ document.addEventListener('astro:before-swap',()=>{window.removeEventListener('scroll',update);clearTimeout(timer);clearTimeout(projectTimer);projectsLink?.removeEventListener('click',openProjects);cityObserver?.disconnect();document.removeEventListener('keydown',menuKey);document.documentElement.classList.remove('menu-open');},{once:true});
 }
 mountHeader();document.addEventListener('astro:page-load',mountHeader);
 </script>
@@ -66,4 +74,26 @@ body .portfolio-header:is([data-mode=world],[data-mode=space]) nav{display:flex;
 body .portfolio-header:is([data-mode=world],[data-mode=space]) nav>a:not([data-lang-toggle]){display:none}
 body .portfolio-header[data-title=true] .portfolio-brand{visibility:hidden;pointer-events:none}
 body .portfolio-header nav{align-items:flex-start}
+/* Burger menu (phones, 2D pages and project pages). */
+.menu-toggle{display:none}
+@media(max-width:650px){
+ body .portfolio-header[data-mode="2d"] .menu-toggle{display:flex;flex-direction:column;justify-content:center;gap:7px;position:fixed;top:calc(18px + env(safe-area-inset-top));right:18px;z-index:2;width:46px;height:46px;padding:10px;margin:0;background:none;border:0;cursor:pointer;pointer-events:auto}
+ body .portfolio-header[data-mode="2d"] .menu-toggle>span{display:block;height:2px;width:100%;background:#d2e8ff;box-shadow:0 0 10px #63c9ff;border-radius:2px;transition:transform .35s cubic-bezier(.2,.7,.2,1),opacity .2s,background .2s}
+ body .portfolio-header[data-mode="2d"] .menu-toggle>span:nth-child(2){width:70%;margin-left:auto}
+ body .portfolio-header[data-menu=open] .menu-toggle>span{background:#bba3ff;box-shadow:0 0 12px #8372f9}
+ body .portfolio-header[data-menu=open] .menu-toggle>span:nth-child(1){transform:translateY(9px) rotate(45deg)}
+ body .portfolio-header[data-menu=open] .menu-toggle>span:nth-child(2){opacity:0}
+ body .portfolio-header[data-menu=open] .menu-toggle>span:nth-child(3){transform:translateY(-9px) rotate(-45deg)}
+ body .portfolio-header[data-mode="2d"] nav{position:fixed!important;inset:0!important;z-index:1;width:auto!important;margin:0!important;display:flex!important;flex-direction:column;align-items:center!important;justify-content:center!important;gap:26px!important;padding:90px 24px 60px!important;background:radial-gradient(ellipse at 20% 20%,#12336baa,transparent 60%),radial-gradient(ellipse at 85% 75%,#391365aa,transparent 60%),#030613f5;opacity:0;visibility:hidden;transform:translateY(-12px);transition:opacity .35s,transform .45s cubic-bezier(.2,.7,.2,1),visibility 0s .45s;pointer-events:none}
+ body .portfolio-header[data-menu=open] nav{opacity:1;visibility:visible;transform:none;transition:opacity .35s,transform .45s cubic-bezier(.2,.7,.2,1);pointer-events:auto}
+ body .portfolio-header[data-mode="2d"] nav>a{min-height:56px!important;font:40px/1 HeaderMurmure,sans-serif!important;letter-spacing:.04em;color:#e8f1ff}
+ body .portfolio-header[data-mode="2d"] nav>a .header-letter>em{font-size:46px}
+ body .portfolio-header[data-mode="2d"] nav>a[data-lang-toggle]{margin-top:18px;font:20px HeaderMabry,sans-serif!important;color:#9fb6d6}
+ body .portfolio-header[data-menu=open] nav>a{animation:menu-in .5s cubic-bezier(.2,.7,.2,1) both}
+ body .portfolio-header[data-menu=open] nav>a:nth-child(2){animation-delay:.05s}body .portfolio-header[data-menu=open] nav>a:nth-child(3){animation-delay:.1s}body .portfolio-header[data-menu=open] nav>a:nth-child(4){animation-delay:.15s}body .portfolio-header[data-menu=open] nav>a:nth-child(5){animation-delay:.2s}
+ html.menu-open,html.menu-open body{overflow:hidden}
+ body .portfolio-header[data-menu=open] .portfolio-brand{visibility:visible!important;pointer-events:auto!important;position:relative;z-index:2}
+}
+@keyframes menu-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){body .portfolio-header nav,body .portfolio-header .menu-toggle>span{transition:none!important}body .portfolio-header[data-menu=open] nav>a{animation:none}}
 </style>
