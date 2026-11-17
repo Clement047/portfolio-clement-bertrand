@@ -21,6 +21,8 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 
 .v2-artboard [style*="Le Murmure"][style*="height:100px"]{white-space:nowrap}
+/* English: centred titles stay centred in their French-sized box, even when longer (see i18n.js). */
+@media (min-width:901px){html[lang=en] .v2-artboard [data-i18n-centred="1"]{display:flex!important;justify-content:center;text-align:center}}
 
 /* Text overflow corrections, measured with the final project fonts. */
 /* Reflections: preserve the Figma columns, reserve actual text height. */

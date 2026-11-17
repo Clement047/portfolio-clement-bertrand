@@ -39,12 +39,23 @@ export function t(text) {
 const textOriginals = new Map(), attrOriginals = new Map();
 const skip = node => !node || node.closest?.('script,style,noscript,[data-no-translate]');
 
+// Project pages are Figma artboards: each title box is sized to its French text.
+// A translated title whose box is centred on its container stays centred in English.
+function markCentredTitle(element) {
+  if (!element || element.dataset.i18nCentred || !element.closest('.v2-artboard')) return;
+  const parent = element.offsetParent;
+  if (!parent || getComputedStyle(element).position !== 'absolute') return;
+  const centre = element.offsetLeft + element.offsetWidth / 2;
+  element.dataset.i18nCentred = Math.abs(centre - parent.clientWidth / 2) <= Math.max(12, parent.clientWidth * .02) ? '1' : '0';
+}
+
 function translateText(node) {
   if (skip(node.parentElement)) return;
   const record = textOriginals.get(node);
   if (record && node.data === record.applied) return;
   const english = translate(node.data);
   if (english === null) { textOriginals.delete(node); return; }
+  markCentredTitle(node.parentElement);
   const [, lead, , trail] = node.data.match(/^(\s*)([\s\S]*?)(\s*)$/);
   const applied = lead + english + trail;
   textOriginals.set(node, { source: node.data, applied });
