@@ -1,5 +1,5 @@
 /** Astro adapter: native section scrolling, no drag/hover, explicit disposal. */
-import { cappedPixelRatio, createFrameWatch, onQualityChange } from '../lib/render-quality.js';
+import { cappedPixelRatio, onQualityChange } from '../lib/render-quality.js';
 export function initProjectOrbit(root, embedded=null) {
   let embeddedUpdate=()=>{},embeddedVisible=false;
   let disposed=false,frame=0,cleanup=()=>{};
@@ -222,30 +222,27 @@ export function initProjectOrbit(root, embedded=null) {
       }
       const card=new component.GlassVideoCard(video,{width:8,aspect:p.aspect*(7/5.8),placeholder:!p.src,title:p.title,tint:p.tint,titleDepth:.12,fontUrl:url('assets/fonts/le-murmure.otf')});if(embedded?.cardScale)card.scale.setScalar(embedded.cardScale);cards.push(card);cardParent.add(card);
       const player={video,hls:null};players.push(player);
-      // Only a real autoplay refusal asks for a click: a play() interrupted because the
-      // card turned away (paused on purpose) is not one.
-      const play=()=>{if(still){if(!disposed)showStill(video);return;}if(!disposed&&(!embedded||embeddedVisible))video.play().catch(error=>{if(error?.name==='NotAllowedError')resume.hidden=false;});};
       video.addEventListener('loadeddata',()=>{status.hidden=true;});
       if(!p.src){
         // Projet sans vidéo : aucun chargement réseau.
       }else if(p.src.toLowerCase().endsWith('.mp4')){
-        video.src=url(p.src);
-        video.addEventListener('canplay',play,{once:true});
-        video.load();
+        // Downloaded only when its card is first shown (see the video budget below).
+        player.src=url(p.src);
       }else if(Hls.isSupported()){
-        player.hls=new Hls({maxBufferLength:14,maxMaxBufferLength:24,backBufferLength:6,capLevelToPlayerSize:true});
-        player.hls.loadSource(url(p.src));
-        player.hls.attachMedia(video);
-        player.hls.on(Hls.Events.MANIFEST_PARSED,play);
-        player.hls.on(Hls.Events.ERROR,(_,event)=>{
-          if(event.fatal&&!disposed){
-            status.hidden=false;
-            status.textContent='Impossible de charger la vidéo '+p.title+'.';
-          }
-        });
+        // hls.js is attached only when its card is first shown: attaching it already downloads segments.
+        player.attach=()=>{
+          player.hls=new Hls({maxBufferLength:14,maxMaxBufferLength:24,backBufferLength:6,capLevelToPlayerSize:true});
+          player.hls.loadSource(url(p.src));
+          player.hls.attachMedia(video);
+          player.hls.on(Hls.Events.ERROR,(_,event)=>{
+            if(event.fatal&&!disposed){
+              status.hidden=false;
+              status.textContent='Impossible de charger la vidéo '+p.title+'.';
+            }
+          });
+        };
       }else if(video.canPlayType('application/vnd.apple.mpegurl')){
-        video.src=url(p.src);
-        video.addEventListener('canplay',play,{once:true});
+        player.src=url(p.src);
       }else{
         status.hidden=false;
         status.textContent='Lecture vidéo indisponible dans ce navigateur.';
@@ -338,13 +335,14 @@ export function initProjectOrbit(root, embedded=null) {
       renderer?.setSize(w,h,false);fallbacks.forEach(f=>{f.setPixelRatio(Math.min(devicePixelRatio,1.25));f.setSize(w,h);});
     }
     if(!embedded){resizeObserver=new ResizeObserver(resize);resizeObserver.observe(viewport);resize();}
-    // 2D: a computer that keeps missing frames lowers the shared quality level; the cards follow it.
-    const frameWatch=embedded?null:createFrameWatch();
+    // Cards are ready: videos load later, card by card, so the loading notice goes now.
+    status.hidden=true;
+    // The cards follow the shared quality level (set by the 3D city only).
     if(!embedded)stopQuality=onQualityChange(()=>{renderer?.setPixelRatio(cappedPixelRatio(1.7));resize();});
     function resumeAll(){players.forEach(p=>p.video.play().catch(()=>{}));resume.hidden=true;}
     resume.addEventListener('click',resumeAll);
     function animate(now){
-      if(disposed)return;if(!embedded)frame=requestAnimationFrame(animate);frameWatch?.((now-last)/1000);const dt=Math.min((now-last)/1000,.05);last=now;
+      if(disposed)return;if(!embedded)frame=requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;
       const rect=root.getBoundingClientRect();
       const progress=embedded?embedded.getProgress():THREE.MathUtils.clamp(-rect.top/Math.max(1,root.offsetHeight-viewport.clientHeight),0,1);
       angle=THREE.MathUtils.damp(angle,-.48+progress*Math.PI*2*(embedded?.rotationDirection??-1),5,dt);
@@ -369,7 +367,7 @@ return { card, i };
       // and turned towards the camera, while the orbit itself is on screen. Five
       // full-resolution videos decoding at once made every page stutter.
       videoBudgetTime+=dt;if(videoBudgetTime>.25){videoBudgetTime=0;
-        const orbitOnScreen=embedded?embeddedVisible&&(embedded.getVisibility?.()??1)>.01:!document.hidden&&rect.bottom>0&&rect.top<innerHeight;
+        const orbitOnScreen=embedded?embeddedVisible&&(embedded.getVisibility?.()??1)>.01:!document.hidden&&rect.bottom>innerHeight*.2&&rect.top<innerHeight*.6;
         const cameraPosition=camera.getWorldPosition(new THREE.Vector3());
         // Cards always turn towards the camera: the three nearest are the ones seen
         // from the front; those further back in the ring keep their last frame.
@@ -378,8 +376,11 @@ return { card, i };
           const point=card.getWorldPosition(new THREE.Vector3()).project(camera);
           const visible=orbitOnScreen&&nearest.includes(i)&&point.z>-1&&point.z<1&&Math.abs(point.x)<1.6&&Math.abs(point.y)<1.6;
           const {video,hls}=players[i];
-          if(visible&&video.paused&&!(still&&video.dataset.still)){hls?.startLoad?.();if(still){video.dataset.still='1';showStill(video);}else video.play().catch(()=>{});}
-          else if(!visible&&!video.paused){video.pause();hls?.stopLoad?.();}
+          if(visible&&video.paused&&!(still&&video.dataset.still)){
+            if(players[i].src&&!video.getAttribute('src')){video.src=players[i].src;video.load();}
+            if(players[i].attach&&!players[i].hls){players[i].attach();players[i].loading=true;}
+            if(!players[i].loading){players[i].loading=true;players[i].hls?.startLoad?.();}if(still){video.dataset.still='1';showStill(video);}else video.play().catch(error=>{if(error?.name==='NotAllowedError')resume.hidden=false;});}
+          else if(!visible){if(!video.paused)video.pause();if(players[i].loading){players[i].loading=false;players[i].hls?.stopLoad?.();}}
         });
       }
       // Synchronisation des descriptions avec les cartes 3D
@@ -451,7 +452,8 @@ return { card, i };
   }
   const ready=setup().catch(error=>{console.error(error);if(!disposed){const status=root.querySelector('[data-orbit-status]');status.hidden=false;status.textContent='Impossible d’initialiser les cartes : '+error.message;}if(embedded)throw error;});
   const dispose=()=>{disposed=true;cancelAnimationFrame(frame);cleanup();};
-  dispose.ready=ready;dispose.update=dt=>embeddedUpdate(dt);dispose.setVisible=value=>{embeddedVisible=value;root.hidden=!value;if(!value&&embedded?.canvas)embedded.canvas.style.cursor='default';root.querySelectorAll('video').forEach(video=>{if(value&&(video.currentSrc||video.src))video.play().catch(()=>{root.querySelector('[data-orbit-resume]').hidden=false;});else video.pause();});};
+  dispose.ready=ready;dispose.update=dt=>embeddedUpdate(dt);dispose.setVisible=value=>{embeddedVisible=value;root.hidden=!value;if(!value&&embedded?.canvas)embedded.canvas.style.cursor='default';// Playback is started by the video budget, card by card; hiding the orbit pauses everything.
+if(!value)root.querySelectorAll('video').forEach(video=>video.pause());};
   return dispose;
 }
 
