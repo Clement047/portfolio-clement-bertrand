@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
-import {getQuality} from './render-quality.js';
+import {getQuality,getLevel} from './render-quality.js';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
@@ -73,8 +73,15 @@ export async function mountAboutAvatar(host){
  const draco=new DRACOLoader();draco.setDecoderPath('/vendor/draco/');const loader=new GLTFLoader();loader.setDRACOLoader(draco);
  function dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();io.disconnect();hitGeometry.dispose();hitMaterial.dispose();window.dispatchEvent(new Event('portfolio:stop-grunt'));canvas.removeEventListener('pointerdown',pointerDown);canvas.removeEventListener('click',click);draco.dispose();env.dispose();document.removeEventListener('visibilitychange',visibility);canvas.removeEventListener('keydown',key);model?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m?.dispose();});renderer.dispose();renderer.forceContextLoss();canvas.remove();delete host.dataset.loaded;}
  resize();
+ // The portrait sits far down the page: load it only when the visitor gets close.
+ await new Promise(resolve=>{const near=new IntersectionObserver(entries=>{if(entries[0].isIntersecting){near.disconnect();resolve();}},{rootMargin:'100% 0px'});near.observe(host);});
+ if(disposed)return;
+ // 3 million vertices of hair overflow a phone's memory (Safari reloads the page):
+ // phones get a version with simplified hair, slow computers an intermediate one.
+ const phone=/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(matchMedia('(pointer: coarse)').matches&&Math.min(screen.width,screen.height)<=600);
+ const portrait=phone?'clement-tete-mobile.glb':getLevel()>=2?'clement-tete-light.glb':'clement-tete.glb';
  try{
-  const gltf=await loader.loadAsync('/models/avatar/clement-tete.glb?v=contrast-smooth-gaze-8');model=gltf.scene;
+  const gltf=await loader.loadAsync('/models/avatar/'+portrait+'?v=contrast-smooth-gaze-8');model=gltf.scene;
   const box=new THREE.Box3().setFromObject(model),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());model.position.sub(center);model.userData.size=size;
   model.traverse(o=>{
    if(!o.isMesh)return;
