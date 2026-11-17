@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
+import {getQuality} from './render-quality.js';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
@@ -21,7 +22,7 @@ export async function mountAboutAvatar(host){
  const mount=host.querySelector('[data-avatar-canvas]'),status=host.querySelector('[data-avatar-status]');
  let renderer;
  try{renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});}catch{return;}
- renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio,1.75),2));renderer.setClearColor(0,0);renderer.toneMapping=THREE.AgXToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
+ renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio,1.75),2,getQuality().maxRatio*1.6));renderer.setClearColor(0,0);renderer.toneMapping=THREE.AgXToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
  const canvas=renderer.domElement;canvas.tabIndex=0;canvas.setAttribute('role','button');canvas.setAttribute('aria-label','Interagir avec Clément : cliquer ou appuyer sur Entrée ou Espace.');canvas.setAttribute('aria-describedby','portrait-interaction-hint');mount.append(canvas);
  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(34,1,.01,100);camera.position.set(0,0,6);
  const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment(),env=pmrem.fromScene(room,.04);scene.environment=env.texture;scene.environmentIntensity=.25;room.dispose();pmrem.dispose();
@@ -34,7 +35,7 @@ export async function mountAboutAvatar(host){
  let frame=0,disposed=false,visible=true,model,pivot,reactionStart=-Infinity,reactionDirection=1,lastGrunt=-1;
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,duration=reduced?240:820;
  const hitGeometry=new THREE.BoxGeometry(2,2,2),hitMaterial=new THREE.MeshBasicMaterial(),hitProxy=new THREE.Mesh(hitGeometry,hitMaterial),raycaster=new THREE.Raycaster();
- const sharpRatio=Math.min(Math.max(devicePixelRatio,1.75),2);let motionQuality=false;
+ const sharpRatio=Math.min(Math.max(devicePixelRatio,1.75),2,getQuality().maxRatio*1.6);let motionQuality=false;
  function quality(moving){if(motionQuality===moving)return;motionQuality=moving;renderer.setPixelRatio(moving?Math.min(devicePixelRatio,1.25):sharpRatio);renderer.setSize(mount.clientWidth,mount.clientHeight,false);}
  const render=(now)=>{
   frame=0;if(disposed||!visible||document.hidden)return;

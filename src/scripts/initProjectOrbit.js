@@ -1,4 +1,5 @@
 /** Astro adapter: native section scrolling, no drag/hover, explicit disposal. */
+import { cappedPixelRatio, createFrameWatch, onQualityChange } from '../lib/render-quality.js';
 export function initProjectOrbit(root, embedded=null) {
   let embeddedUpdate=()=>{},embeddedVisible=false;
   let disposed=false,frame=0,cleanup=()=>{};
@@ -190,9 +191,9 @@ export function initProjectOrbit(root, embedded=null) {
       if(embedded)reveal();else requestAnimationFrame(reveal);
     }
 
-    const players=[],cards=[],fallbacks=[];let renderer,environment,resizeObserver,angle=-.48,last=performance.now(),videoBudgetTime=0;
+    const players=[],cards=[],fallbacks=[];let stopQuality=()=>{},renderer,environment,resizeObserver,angle=-.48,last=performance.now(),videoBudgetTime=0;
     cleanup=()=>{
-      cancelAnimationFrame(frame);resizeObserver?.disconnect();
+      cancelAnimationFrame(frame);resizeObserver?.disconnect();stopQuality();
       resume.removeEventListener('click',resumeAll);
       players.forEach(p=>{p.video.pause();p.hls?.destroy();p.video.removeAttribute('src');p.video.load();p.video.remove();});
       cards.forEach(c=>c.dispose());fallbacks.forEach(f=>f.dispose());if(!embedded)renderer?.dispose();environment?.dispose();cards.forEach(c=>c.parent?.remove(c));
@@ -252,7 +253,7 @@ export function initProjectOrbit(root, embedded=null) {
     }
     const context=embedded?null:canvas.getContext('webgl2',{alpha:true,antialias:true});
     if(embedded){renderer=embedded.renderer;}else if(context){
-      renderer=new THREE.WebGLRenderer({canvas,context,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
+      renderer=new THREE.WebGLRenderer({canvas,context,alpha:true,antialias:true});renderer.setPixelRatio(cappedPixelRatio(1.7));renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
       environment=component.createStudioEnvironment(renderer);scene.environment=environment.texture;
       scene.add(new THREE.AmbientLight(0xa8b9c9,.6));const key=new THREE.DirectionalLight(0xe2e9ef,1.2);key.position.set(-2,3,5);scene.add(key);
     }else{
@@ -337,10 +338,13 @@ export function initProjectOrbit(root, embedded=null) {
       renderer?.setSize(w,h,false);fallbacks.forEach(f=>{f.setPixelRatio(Math.min(devicePixelRatio,1.25));f.setSize(w,h);});
     }
     if(!embedded){resizeObserver=new ResizeObserver(resize);resizeObserver.observe(viewport);resize();}
+    // 2D: a computer that keeps missing frames lowers the shared quality level; the cards follow it.
+    const frameWatch=embedded?null:createFrameWatch();
+    if(!embedded)stopQuality=onQualityChange(()=>{renderer?.setPixelRatio(cappedPixelRatio(1.7));resize();});
     function resumeAll(){players.forEach(p=>p.video.play().catch(()=>{}));resume.hidden=true;}
     resume.addEventListener('click',resumeAll);
     function animate(now){
-      if(disposed)return;if(!embedded)frame=requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;
+      if(disposed)return;if(!embedded)frame=requestAnimationFrame(animate);frameWatch?.((now-last)/1000);const dt=Math.min((now-last)/1000,.05);last=now;
       const rect=root.getBoundingClientRect();
       const progress=embedded?embedded.getProgress():THREE.MathUtils.clamp(-rect.top/Math.max(1,root.offsetHeight-viewport.clientHeight),0,1);
       angle=THREE.MathUtils.damp(angle,-.48+progress*Math.PI*2*(embedded?.rotationDirection??-1),5,dt);

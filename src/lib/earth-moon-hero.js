@@ -6,6 +6,7 @@ import { createSaturnAtmosphere } from './space/atmosphere.js';
 import { createParallaxStars, animateNebulaDome } from './space/galaxy.js';
 import { SPACE_BACKGROUND } from './space/look.js';
 import { addAmbientVeil } from './ambient-veil.js';
+import { cappedPixelRatio, getQuality } from './render-quality.js';
 
 export function mountEarthMoonHero() {
  const host = document.querySelector('[data-earth-moon]');
@@ -17,7 +18,7 @@ export function mountEarthMoonHero() {
  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
  let renderer;
  try { renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true, powerPreference:'low-power' }); } catch { return; }
- renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+ renderer.setPixelRatio(cappedPixelRatio(1.75));
  renderer.setSize(innerWidth, innerHeight);
  renderer.toneMapping = THREE.AgXToneMapping;
  renderer.toneMappingExposure = 1.05;
@@ -130,7 +131,7 @@ export function mountEarthMoonHero() {
      fragmentShader:'varying vec2 glowUv;void main(){vec2 q=(glowUv-.5)*2.;float r=length(q);float energy=exp(-dot(q,q)*9.)*(1.-smoothstep(.85,1.,r));vec3 light=mix(vec3(.15,.38,.6),vec3(.8,.95,1.),exp(-dot(q,q)*28.));gl_FragColor=vec4(light*2.,energy*.16);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'
     });
    }
-   if(o.isLight){o.intensity/=683;if(o.name==='SPACE_Key_ColdSun'){o.color.setRGB(.48,.66,1);o.intensity=3.2;o.castShadow=true;o.shadow.mapSize.set(2048,2048);o.shadow.bias=-.0003;o.shadow.normalBias=.14;Object.assign(o.shadow.camera,{left:-65,right:65,top:65,bottom:-65,near:.1,far:350});o.shadow.camera.updateProjectionMatrix();}}
+   if(o.isLight){o.intensity/=683;if(o.name==='SPACE_Key_ColdSun'){o.color.setRGB(.48,.66,1);o.intensity=3.2;o.castShadow=true;o.shadow.mapSize.setScalar(getQuality().shadowSize);o.shadow.bias=-.0003;o.shadow.normalBias=.14;Object.assign(o.shadow.camera,{left:-65,right:65,top:65,bottom:-65,near:.1,far:350});o.shadow.camera.updateProjectionMatrix();}}
    if(o.isMesh){o.castShadow=!o.name.includes('Galaxy')&&!o.name.includes('Stellar_Glow');o.receiveShadow=o.castShadow;for(const m of Array.isArray(o.material)?o.material:[o.material])for(const k of ['map','normalMap','roughnessMap'])if(m[k])m[k].anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());}
   });
   asset.updateMatrixWorld(true);

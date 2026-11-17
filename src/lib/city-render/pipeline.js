@@ -9,6 +9,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { getQuality } from '../render-quality.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { restoreFacade } from './facades.js';
@@ -155,7 +156,7 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
   setLightGain(gain);
   function update(seconds){
     mist.update(seconds);motes.update(seconds);
-    if(animatedShadows&&seconds-lastShadow>.2){renderer.shadowMap.needsUpdate=true;lastShadow=seconds;}
+    if(animatedShadows&&seconds-lastShadow>getQuality().shadowRefresh){renderer.shadowMap.needsUpdate=true;lastShadow=seconds;}
     const sample=((seconds%8)+8)%8*metadata.fps, i=Math.floor(sample), t=sample-i;
     for(const {anchor,light,data,width,height} of areas){
       anchor.getWorldScale(scale);light.width=width*Math.abs(scale.x);light.height=height*Math.abs(scale.y);
@@ -303,7 +304,8 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
     },
     refreshAtmosphere(){stats.mistMaterials=(stats.mistMaterials??0)+applyDistrictMist(gltf.scene);},
     setCamera(camera){renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);composer.addPass(skyMask);composer.addPass(bloom);composer.addPass(smaa);composer.addPass(output);},
-    render(){composer.render();},
+    // Effects follow the shared quality level (see render-quality.js).
+    render(){const quality=getQuality();smaa.enabled=quality.smaa;bloom.enabled=quality.bloom;composer.render();},
     getSkyMask(){return skyMask.target.texture;},
     renderTexture(){const previous=composer.renderToScreen;composer.renderToScreen=false;skyMask.enabled=true;try{composer.render();return composer.readBuffer.texture;}finally{composer.renderToScreen=previous;skyMask.enabled=false;}},
     resize(width,height){composer.setPixelRatio(renderer.getPixelRatio());composer.setSize(width,height);},

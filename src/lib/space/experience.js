@@ -12,6 +12,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { getQuality } from '../render-quality.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { initProjectOrbit } from '../../scripts/initProjectOrbit.js';
 import { createSpaceScroll,projectInfoVisible } from './journey-scroll.js';
@@ -81,7 +82,7 @@ export function createSpaceExperience(renderer,onReturn,{environment=null}={}){
 }`});
    }
    if(o.name.startsWith('SPACE_Asteroid_'))asteroids.push({object:o,position:o.position.clone(),rotation:o.rotation.clone(),seed:o.userData.space_drift_seed??asteroids.length});
-   if(o.isLight){o.intensity/=683;if(o.name==='SPACE_Key_ColdSun'){o.color.setRGB(.48,.66,1);o.intensity=3.2;}if(o.name==='SPACE_Key_ColdSun'&&o.shadow){o.castShadow=true;o.shadow.mapSize.set(2048,2048);o.shadow.bias=-.0003;o.shadow.normalBias=.14;o.shadow.radius=2;Object.assign(o.shadow.camera,{left:-65,right:65,top:65,bottom:-65,near:.1,far:300});o.shadow.camera.updateProjectionMatrix();}}
+   if(o.isLight){o.intensity/=683;if(o.name==='SPACE_Key_ColdSun'){o.color.setRGB(.48,.66,1);o.intensity=3.2;}if(o.name==='SPACE_Key_ColdSun'&&o.shadow){o.castShadow=true;o.shadow.mapSize.setScalar(getQuality().shadowSize);o.shadow.bias=-.0003;o.shadow.normalBias=.14;o.shadow.radius=2;Object.assign(o.shadow.camera,{left:-65,right:65,top:65,bottom:-65,near:.1,far:300});o.shadow.camera.updateProjectionMatrix();}}
    if(o.isMesh){o.castShadow=o!==sky&&!o.name.includes('Galaxy')&&!o.name.includes('Stellar_Glow');o.receiveShadow=!o.name.includes('Galaxy')&&!o.name.includes('Stellar_Glow');for(const m of Array.isArray(o.material)?o.material:[o.material])for(const k of ['map','normalMap','roughnessMap'])if(m[k]){m[k].anisotropy=anisotropy;m[k].needsUpdate=true;}}
   });
   gltf.scene.updateMatrixWorld(true);
@@ -124,6 +125,7 @@ export function createSpaceExperience(renderer,onReturn,{environment=null}={}){
   scene.updateMatrixWorld(true);orbital?.update(dt);
  }
  function draw(target,time){
+  {const quality=getQuality();smaa.enabled=quality.smaa;bloom.enabled=quality.bloom;}
   if(stats.error){ui.hidden=false;const status=ui.querySelector('[data-orbit-status]');status.hidden=false;status.textContent='Arrivée spatiale interrompue : '+stats.error;return;}
   update(time);if(!target&&shown&&scroll.journey>CONTACT_END-.0001)return;if(stats.loaded&&!shadowInitialized){renderer.shadowMap.needsUpdate=true;shadowInitialized=true;}const oldTone=renderer.toneMapping,oldExposure=renderer.toneMappingExposure;renderer.toneMapping=THREE.AgXToneMapping;renderer.toneMappingExposure=1.05;
   if(target){composer.renderToScreen=false;composer.render();copyMaterial.uniforms.image.value=composer.readBuffer.texture;renderer.setRenderTarget(target);renderer.clear();renderer.render(copyScene,copyCamera);composer.renderToScreen=true;}

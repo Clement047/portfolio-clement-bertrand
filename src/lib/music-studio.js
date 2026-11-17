@@ -6,6 +6,7 @@ import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {cappedPixelRatio,getQuality} from './render-quality.js';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
 
 export function mountMusicStudio(){
@@ -13,7 +14,7 @@ export function mountMusicStudio(){
  const status=document.querySelector('[data-studio-status]'),panel=document.querySelector('.studio-glass');
  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
- renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=THREE.AgXToneMapping;renderer.toneMappingExposure=1.05;
+ renderer.setPixelRatio(cappedPixelRatio(1.5));renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=THREE.AgXToneMapping;renderer.toneMappingExposure=1.05;
  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;renderer.shadowMap.autoUpdate=false;host.append(renderer.domElement);
  const scene=new THREE.Scene();scene.background=new THREE.Color('#02040b');scene.fog=new THREE.FogExp2(0x060b19,.018);
  const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.06,100);
@@ -32,7 +33,7 @@ export function mountMusicStudio(){
  let rippleIndex=0,lastRipple=0,lastPointer=new THREE.Vector2(-10,-10);
  const addExtra=o=>{extras.push(o);scene.add(o);return o;};
  const local=(x,y,z)=>pivot.clone().addScaledVector(right,x).addScaledVector(up,y).addScaledVector(normal,z);
- function draw(){if(!disposed&&ready)composer.render();}
+ function draw(){if(!disposed&&ready){bloom.enabled=getQuality().bloom;composer.render();}}
  function resize(){camera.aspect=innerWidth/innerHeight;camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(45)/2)*Math.max(1,1.55/camera.aspect)));camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);waves.uniforms.aspect.value=camera.aspect;draw();}
  function pointerMove(e){const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight,now=performance.now();mouse.set(x*2-1,y*2-1);if(reduce)return;desired.set((x-.5)*.22,(y-.5)*.16);const movement=lastPointer.distanceTo(new THREE.Vector2(x,y));if(now-lastRipple>70&&movement>.018){ripples[rippleIndex].set(x,y,now/1000,Math.min(1,.4+movement*5));rippleIndex=(rippleIndex+1)%8;lastPointer.set(x,y);lastRipple=now;}}
  function selectedCard(event){const rect=renderer.domElement.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,1-(event.clientY-rect.top)/rect.height*2),camera);const hit=ray.intersectObjects(cards,true)[0];return hit?.object.userData.track;}

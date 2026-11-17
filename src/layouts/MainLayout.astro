@@ -46,14 +46,22 @@ const heading = headings[path];
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     {Astro.url.pathname === '/' && <script is:inline data-astro-rerun>
-      // Decide before any city models are requested. Phones and visitors who ask for reduced motion
+      // Decide before any city models are requested. Phones, computers without a graphics card and visitors who ask for reduced motion
       // start on the 2D version, which honours that preference; a deliberate 3D visit stays possible.
       (() => {
         const phone = /iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)
           || (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) <= 600);
         const deliberate3D = new URLSearchParams(location.search).get('experience') === '3d';
         const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if ((phone || reducedMotion) && !deliberate3D) {
+        // Without a graphics card (software rendering), the city cannot stay fluid at any quality.
+        let software = false;
+        try {
+          const gl = document.createElement('canvas').getContext('webgl');
+          const info = gl && gl.getExtension('WEBGL_debug_renderer_info');
+          software = !!info && /swiftshader|llvmpipe|software|basic render/i.test(gl.getParameter(info.UNMASKED_RENDERER_WEBGL));
+          gl && gl.getExtension('WEBGL_lose_context')?.loseContext();
+        } catch {}
+        if ((phone || reducedMotion || software) && !deliberate3D) {
           document.documentElement.dataset.mobileEntry = '2d';
           location.replace('/portfolio-2d/' + location.hash);
         }
