@@ -27,9 +27,10 @@
 <script>
 function mountAbout(){
  const host=document.querySelector<HTMLElement>('[data-about-avatar]');if(!host||host.dataset.mounted)return;host.dataset.mounted='true';
+ const lifetime=new AbortController();
  let cancelled=false,dispose:(()=>void)|undefined;
- const observer=new IntersectionObserver(entries=>{if(!entries.some(e=>e.isIntersecting))return;observer.disconnect();import('../../lib/about-avatar.js').then(async({mountAboutAvatar})=>{if(cancelled)return;const cleanup=await mountAboutAvatar(host);if(cancelled)cleanup?.();else dispose=cleanup;}).catch(()=>{const status=host.querySelector('[data-avatar-status]');if(status)status.textContent='Le portrait 3D n’a pas pu être chargé.';});},{rootMargin:'350px'});observer.observe(host);
- document.addEventListener('astro:before-swap',()=>{cancelled=true;observer.disconnect();dispose?.();},{once:true});
+ const observer=new IntersectionObserver(entries=>{if(!entries.some(e=>e.isIntersecting))return;observer.disconnect();import('../../lib/about-avatar.js').then(async({mountAboutAvatar})=>{if(cancelled)return;const cleanup=await mountAboutAvatar(host,{signal:lifetime.signal});if(cancelled)cleanup?.();else dispose=cleanup;}).catch(()=>{const status=host.querySelector('[data-avatar-status]');if(status)status.textContent='Le portrait 3D n’a pas pu être chargé.';});},{rootMargin:'350px'});observer.observe(host);
+ document.addEventListener('astro:before-swap',()=>{cancelled=true;lifetime.abort();observer.disconnect();dispose?.();},{once:true});
 }
 mountAbout();document.addEventListener('astro:page-load',mountAbout);
 </script>

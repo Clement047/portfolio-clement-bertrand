@@ -1,3 +1,6 @@
+import {createVisibleLoop} from './visible-loop.js';
+import {loadPageModel} from './page-model.js';
+import {createHoverPicker} from './hover-picker.js';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
@@ -11,6 +14,7 @@ import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniform
 
 export function mountMusicStudio(){
  const host=document.querySelector('[data-music-studio]');if(!host||host.dataset.mounted)return;host.dataset.mounted='true';
+ const lifetime=new AbortController();
  const status=document.querySelector('[data-studio-status]'),panel=document.querySelector('.studio-glass');
  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
@@ -26,10 +30,11 @@ export function mountMusicStudio(){
  void main(){vec2 uv=vUv;for(int i=0;i<8;i++){float age=time-ripples[i].z;if(age>0.&&age<3.2){vec2 q=vUv-ripples[i].xy;q.x*=aspect;float d=length(q),r=age*.42;float e=exp(-age*1.45)*exp(-pow((d-r)/.23,2.));vec2 dir=q/max(d,.02);dir.x/=aspect;uv+=dir*sin((d-r)*24.)*e*.009*ripples[i].w;}}gl_FragColor=texture2D(tDiffuse,clamp(uv,.001,.999));}`});
  waves.uniforms.ripples.value=ripples;
  const output=new OutputPass();composer.addPass(renderPass);composer.addPass(bloom);composer.addPass(waves);composer.addPass(output);
- let disposed=false,asset,animationFrame=0,lastDraw=0,lastTime=performance.now(),ready=false,hovered=null;
+ let disposed=false,asset,lastDraw=0,lastTime=performance.now(),ready=false,hovered=null;
  let selectedTrack=localStorage.getItem('portfolio-track')||'encounters';const trackChanged=()=>selectedTrack=localStorage.getItem('portfolio-track')||'encounters';window.addEventListener('portfolio:select-track',trackChanged);
  const cards=[],spectra=[],extras=[],pivot=new THREE.Vector3(),basePosition=new THREE.Vector3(),baseQuaternion=new THREE.Quaternion(),right=new THREE.Vector3(),up=new THREE.Vector3(0,1,0),normal=new THREE.Vector3();
  const desired=new THREE.Vector2(),angle=new THREE.Vector2(),yaw=new THREE.Quaternion(),pitch=new THREE.Quaternion(),rotation=new THREE.Quaternion(),arm=new THREE.Vector3(),mouse=new THREE.Vector2(2,2),ray=new THREE.Raycaster();
+ const hoverPicker=createHoverPicker(ray,camera,cards);
  let rippleIndex=0,lastRipple=0,lastPointer=new THREE.Vector2(-10,-10);
  const addExtra=o=>{extras.push(o);scene.add(o);return o;};
  const local=(x,y,z)=>pivot.clone().addScaledVector(right,x).addScaledVector(up,y).addScaledVector(normal,z);
@@ -40,7 +45,7 @@ export function mountMusicStudio(){
  function select(event){const id=selectedCard(event);if(!id)return;localStorage.setItem('portfolio-track',id);window.dispatchEvent(new CustomEvent('portfolio:select-track',{detail:id}));document.querySelectorAll('[data-track]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.track===id)));}
  function pointerLeave(){desired.set(0,0);mouse.set(2,2);}
  window.addEventListener('pointermove',pointerMove,{passive:true});renderer.domElement.addEventListener('pointerleave',pointerLeave);renderer.domElement.addEventListener('click',select);window.addEventListener('resize',resize);
- new GLTFLoader().loadAsync('/models/music-studio.glb').then(async g=>{
+ loadPageModel(new GLTFLoader(),'/models/music-studio.glb',lifetime.signal).then(async g=>{
   if(disposed)return;asset=g.scene;const box=new THREE.Box3().setFromObject(asset),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3()),scale=18/Math.max(size.x,size.y,size.z);asset.position.copy(center).multiplyScalar(-scale);asset.scale.setScalar(scale);scene.add(asset);asset.updateMatrixWorld(true);
   let glass,mixer;const seen=new Set();
   asset.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;for(const m of Array.isArray(o.material)?o.material:[o.material]){
@@ -79,16 +84,16 @@ export function mountMusicStudio(){
    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(cardWidth*.84,cardHeight*.23),material);mesh.position.set(0,-cardHeight*.32,.085);mesh.userData.track=id;card.add(mesh);spectra.push({mesh,material,levels,id});
   }
   status.textContent='';panel.classList.add('studio-world-cards');host.querySelector('.studio-loading')?.remove();ready=true;renderer.shadowMap.needsUpdate=true;resize();
- }).catch(e=>{if(!disposed){host.querySelector('.studio-loading')?.remove();panel.classList.remove('studio-world-cards');status.textContent='Le studio 3D ne peut pas être affiché. Le choix musical reste disponible.';}console.error(e);});
- function animate(now){if(disposed)return;animationFrame=requestAnimationFrame(animate);if(document.hidden||now-lastDraw<33)return;const dt=Math.min(.08,(now-lastTime)/1000);lastTime=now;lastDraw=now;if(!ready)return;
+ }).catch(e=>{if(e.name==='AbortError'||disposed)return;if(!disposed){host.querySelector('.studio-loading')?.remove();panel.classList.remove('studio-world-cards');status.textContent='Le studio 3D ne peut pas être affiché. Le choix musical reste disponible.';}console.error(e);});
+ function animate(now){if(disposed||now-lastDraw<33)return;const dt=Math.min(.08,(now-lastTime)/1000);lastTime=now;lastDraw=now;if(!ready)return;
   angle.lerp(desired,1-Math.exp(-dt*5));yaw.setFromAxisAngle(up,angle.x);pitch.setFromAxisAngle(right,-angle.y);rotation.copy(yaw).multiply(pitch);arm.copy(basePosition).sub(pivot).applyQuaternion(rotation);camera.position.copy(pivot).add(arm);camera.quaternion.copy(rotation).multiply(baseQuaternion);
-  ray.setFromCamera(mouse,camera);const hit=ray.intersectObjects(cards,true)[0];hovered=hit?.object.userData.track;renderer.domElement.style.cursor=hovered?'pointer':'default';
+  const hit=hoverPicker.pick(mouse),nextHover=hit?.object.userData.track;if(nextHover!==hovered){hovered=nextHover;renderer.domElement.style.cursor=hovered?'pointer':'default';}
   const selected=selectedTrack;for(const card of cards){const active=card.userData.track===selected,hover=card.userData.track===hovered;const destination=card.userData.anchor.clone().addScaledVector(normal,hover?.09:0);card.position.lerp(destination,1-Math.exp(-dt*9));card.uniforms.uGlass.value=active?1.45:hover?1.2:.85;card.uniforms.uTime.value=now/1000;card._edgeMat.emissiveIntensity=active?.4:hover?.32:.16;}
   for(const s of spectra){const bins=window.portfolioSpectrum?.(s.id);for(let i=0;i<32;i++){const value=bins?bins[Math.min(bins.length-1,i+2)]/255:0;s.levels[i]+=(value-s.levels[i])*.35;}}
   waves.uniforms.time.value=now/1000;draw();
  }
- animationFrame=requestAnimationFrame(animate);
- function cleanup(){if(disposed)return;disposed=true;cancelAnimationFrame(animationFrame);window.removeEventListener('portfolio:select-track',trackChanged);window.removeEventListener('pointermove',pointerMove);window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('click',select);renderer.domElement.removeEventListener('pointerleave',pointerLeave);for(const s of spectra){s.mesh.geometry.dispose();s.material.dispose();}for(const card of cards)card.dispose();const textures=new Set();asset?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])if(m){for(const value of Object.values(m))if(value?.isTexture)textures.add(value);m.dispose();}});textures.forEach(t=>t.dispose());for(const o of extras){o.geometry?.dispose();o.material?.dispose();o.shadow?.map?.dispose();}environment.dispose();composer.dispose();bloom.dispose();waves.dispose();output.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();}
+ const playback=createVisibleLoop(animate);
+ function cleanup(){if(disposed)return;disposed=true;document.removeEventListener('astro:before-swap',cleanup);window.removeEventListener('pagehide',cleanup);lifetime.abort();playback.dispose();window.removeEventListener('portfolio:select-track',trackChanged);window.removeEventListener('pointermove',pointerMove);window.removeEventListener('resize',resize);renderer.domElement.removeEventListener('click',select);renderer.domElement.removeEventListener('pointerleave',pointerLeave);for(const s of spectra){s.mesh.geometry.dispose();s.material.dispose();}for(const card of cards)card.dispose();const textures=new Set();asset?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])if(m){for(const value of Object.values(m))if(value?.isTexture)textures.add(value);m.dispose();}});textures.forEach(t=>t.dispose());for(const o of extras){o.geometry?.dispose();o.material?.dispose();o.shadow?.map?.dispose();}environment.dispose();composer.dispose();bloom.dispose();waves.dispose();output.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();}
  document.addEventListener('astro:before-swap',cleanup,{once:true});window.addEventListener('pagehide',cleanup,{once:true});resize();
 }
 

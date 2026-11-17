@@ -1,3 +1,4 @@
+import {loadPageModel} from './page-model.js';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
@@ -18,7 +19,9 @@ export function portraitReactionFrame(now,start,duration){
  const elapsed=Math.max(0,now-start);
  return {progress:elapsed/duration,active:Number.isFinite(start)&&elapsed<duration};
 }
-export async function mountAboutAvatar(host){
+export async function mountAboutAvatar(host,{signal}={}){
+ if(signal?.aborted)return;
+ const lifetime=new AbortController();let near,resolveNear;
  const mount=host.querySelector('[data-avatar-canvas]'),status=host.querySelector('[data-avatar-status]');
  let renderer;
  try{renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});}catch{return;}
@@ -71,17 +74,18 @@ export async function mountAboutAvatar(host){
  canvas.addEventListener('keydown',key);
  window.dispatchEvent(new Event('portfolio:prepare-grunts'));
  const draco=new DRACOLoader();draco.setDecoderPath('/vendor/draco/');const loader=new GLTFLoader();loader.setDRACOLoader(draco);
- function dispose(){disposed=true;cancelAnimationFrame(frame);ro.disconnect();io.disconnect();hitGeometry.dispose();hitMaterial.dispose();window.dispatchEvent(new Event('portfolio:stop-grunt'));canvas.removeEventListener('pointerdown',pointerDown);canvas.removeEventListener('click',click);draco.dispose();env.dispose();document.removeEventListener('visibilitychange',visibility);canvas.removeEventListener('keydown',key);model?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m?.dispose();});renderer.dispose();renderer.forceContextLoss();canvas.remove();delete host.dataset.loaded;}
+ function dispose(){if(disposed)return;disposed=true;lifetime.abort();near?.disconnect();resolveNear?.();signal?.removeEventListener('abort',dispose);cancelAnimationFrame(frame);ro.disconnect();io.disconnect();hitGeometry.dispose();hitMaterial.dispose();window.dispatchEvent(new Event('portfolio:stop-grunt'));canvas.removeEventListener('pointerdown',pointerDown);canvas.removeEventListener('click',click);draco.dispose();env.dispose();document.removeEventListener('visibilitychange',visibility);canvas.removeEventListener('keydown',key);model?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m?.dispose();});renderer.dispose();renderer.forceContextLoss();canvas.remove();delete host.dataset.loaded;}
+ signal?.addEventListener('abort',dispose,{once:true});
  resize();
  // The portrait sits far down the page: load it only when the visitor gets close.
- await new Promise(resolve=>{const near=new IntersectionObserver(entries=>{if(entries[0].isIntersecting){near.disconnect();resolve();}},{rootMargin:'100% 0px'});near.observe(host);});
+ await new Promise(resolve=>{resolveNear=resolve;near=new IntersectionObserver(entries=>{if(entries[0].isIntersecting){near.disconnect();resolve();}},{rootMargin:'100% 0px'});near.observe(host);});
  if(disposed)return;
  // 3 million vertices of hair overflow a phone's memory (Safari reloads the page):
  // phones get a version with simplified hair, slow computers an intermediate one.
  const phone=/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(matchMedia('(pointer: coarse)').matches&&Math.min(screen.width,screen.height)<=600);
  const portrait=phone?'clement-tete-mobile.glb':getLevel()>=2?'clement-tete-light.glb':'clement-tete.glb';
  try{
-  const gltf=await loader.loadAsync('/models/avatar/'+portrait+'?v=contrast-smooth-gaze-8');model=gltf.scene;
+  const gltf=await loadPageModel(loader,'/models/avatar/'+portrait+'?v=contrast-smooth-gaze-8',lifetime.signal);model=gltf.scene;
   const box=new THREE.Box3().setFromObject(model),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());model.position.sub(center);model.userData.size=size;
   model.traverse(o=>{
    if(!o.isMesh)return;
@@ -93,7 +97,7 @@ export async function mountAboutAvatar(host){
    }else if(!o.material.isMeshBasicMaterial){o.material.roughness=o.name.includes('yeux')?.22:.5;}
   });
   pivot=new THREE.Group();pivot.add(model);scene.add(pivot);hitProxy.scale.set(size.x*.52,size.y*.52,size.z*.52);hitProxy.updateMatrixWorld();fit();renderer.shadowMap.needsUpdate=true;host.dataset.loaded='true';status.textContent='Interagis avec moi';invalidate();
- }catch(error){console.error('Portrait 3D',error);status.textContent='Le portrait 3D n’a pas pu être chargé.';dispose();}
+ }catch(error){if(error.name==='AbortError'||disposed)return;console.error('Portrait 3D',error);status.textContent='Le portrait 3D n’a pas pu être chargé.';dispose();}
  return dispose;
 }
 

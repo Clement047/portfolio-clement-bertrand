@@ -43,14 +43,14 @@ export function initProjectOrbit(root, embedded=null) {
         title:'ÉBÈNE',
         aspect:1918/882,
         tint:0xb88a52,
-        src:'assets/ebene/ebene.mp4',
+        src:'assets/ebene/ebene.faststart.mp4',
         poster:null
       },
       {
         title:'DERRIÈRE LE PROMPT',
         aspect:1918/882,
         tint:0x824dff,
-        src:'assets/derriere-le-prompt/derriere-le-prompt.mp4',
+        src:'assets/derriere-le-prompt/derriere-le-prompt.faststart.mp4',
         poster:null
       },
       {
@@ -196,7 +196,7 @@ export function initProjectOrbit(root, embedded=null) {
       cancelAnimationFrame(frame);resizeObserver?.disconnect();stopQuality();
       stopGestureWait();
       players.forEach(p=>{p.video.pause();p.hls?.destroy();p.video.removeAttribute('src');p.video.load();p.video.remove();});
-      cards.forEach(c=>c.dispose());fallbacks.forEach(f=>f.dispose());if(!embedded)renderer?.dispose();environment?.dispose();cards.forEach(c=>c.parent?.remove(c));
+      cards.forEach(c=>c.dispose());fallbacks.forEach(f=>f.dispose());if(!embedded){renderer?.dispose();renderer?.forceContextLoss?.();}environment?.dispose();cards.forEach(c=>c.parent?.remove(c));
     };
     for(const p of projects){
       const video=document.createElement('video');
@@ -248,7 +248,7 @@ export function initProjectOrbit(root, embedded=null) {
         status.textContent='Lecture vidéo indisponible dans ce navigateur.';
       }
     }
-    const context=embedded?null:canvas.getContext('webgl2',{alpha:true,antialias:true});
+    const context=embedded?null:canvas.getContext('webgl2',{alpha:true,antialias:true,powerPreference:'high-performance'});
     if(embedded){renderer=embedded.renderer;}else if(context){
       renderer=new THREE.WebGLRenderer({canvas,context,alpha:true,antialias:true});renderer.setPixelRatio(cappedPixelRatio(1.7));renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
       environment=component.createStudioEnvironment(renderer);scene.environment=environment.texture;
@@ -345,8 +345,20 @@ export function initProjectOrbit(root, embedded=null) {
     function startVisibleVideos(){stopGestureWait();players.forEach(p=>{if(p.loading&&p.video.paused)p.video.play().catch(()=>{});});}
     function stopGestureWait(){if(!gestureArmed)return;gestureArmed=false;gestureEvents.forEach(type=>document.removeEventListener(type,startVisibleVideos,true));}
     function waitForGesture(){if(gestureArmed||disposed)return;gestureArmed=true;gestureEvents.forEach(type=>document.addEventListener(type,startVisibleVideos,{capture:true,passive:true}));}
+    // Offscreen cards retain their resources and exact appearance, but do no work.
+    let orbitVisible=Boolean(embedded),orbitObserver;
+    function pausePlayers(){players.forEach(player=>{player.video.pause();if(player.loading){player.loading=false;player.hls?.stopLoad?.();}});}
+    function resumeOrbit(){root.dataset.renderState=document.hidden||!orbitVisible?'paused':'running';if(document.hidden){cancelAnimationFrame(frame);frame=0;pausePlayers();return;}if(!embedded&&!disposed&&orbitVisible&&!frame){last=performance.now();frame=requestAnimationFrame(animate);}}
+    if(!embedded){
+      orbitObserver=new IntersectionObserver(entries=>{orbitVisible=entries[0].isIntersecting&&entries[0].intersectionRect.height>1;root.dataset.renderState=orbitVisible?'running':'paused';if(orbitVisible)resumeOrbit();else{cancelAnimationFrame(frame);frame=0;pausePlayers();}},{threshold:[0,.001]});
+      orbitObserver.observe(root);
+      document.addEventListener('visibilitychange',resumeOrbit);
+      const disposePrevious=cleanup;
+      cleanup=()=>{orbitObserver.disconnect();document.removeEventListener('visibilitychange',resumeOrbit);disposePrevious();};
+    }
     function animate(now){
-      if(disposed)return;if(!embedded)frame=requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;
+      if(disposed)return;
+      if(!embedded){frame=0;if(!orbitVisible||document.hidden){pausePlayers();return;}frame=requestAnimationFrame(animate);}const dt=Math.min((now-last)/1000,.05);last=now;
       const rect=root.getBoundingClientRect();
       const progress=embedded?embedded.getProgress():THREE.MathUtils.clamp(-rect.top/Math.max(1,root.offsetHeight-viewport.clientHeight),0,1);
       angle=THREE.MathUtils.damp(angle,-.48+progress*Math.PI*2*(embedded?.rotationDirection??-1),5,dt);
@@ -452,7 +464,7 @@ return { card, i };
       if(!embedded&&!document.hidden&&rect.bottom>0&&rect.top<innerHeight){if(renderer)renderer.render(scene,camera);else order.forEach(({i},j)=>fallbacks[i].render(scene,camera,{clear:j===0}));}
     }
     if(embedded){embeddedUpdate=dt=>animate(last+dt*1000);embedded.onReady?.({cards,players,showProjectInfo});}
-    else frame=requestAnimationFrame(animate);
+    else resumeOrbit();
   }
   const ready=setup().catch(error=>{console.error(error);if(!disposed){const status=root.querySelector('[data-orbit-status]');status.hidden=false;status.textContent='Impossible d’initialiser les cartes : '+error.message;}if(embedded)throw error;});
   const dispose=()=>{disposed=true;cancelAnimationFrame(frame);cleanup();};

@@ -1,3 +1,4 @@
+import {cacheStaticTransforms} from './static-transforms.js';
 import {addAmbientVeil} from '../ambient-veil.js';
 import { prepareCityView, createPreparationCache, yieldMainThread, collectCityVariants, compileCityVariants, supportsParallelShaders } from './startup.js';
 import { traceCityStage } from './trace.js';
@@ -178,19 +179,7 @@ export async function createCityRendering(renderer, scene, gltf, assets) {
   return {stats,nodes,update,setLightGain,
     setOpeningMotion(points,time,enabled){output.material.uniforms.cityRipples.value=points;output.material.uniforms.cityMotionTime.value=time;output.material.uniforms.cityMotionAspect.value=innerWidth/innerHeight;output.material.uniforms.cityMotionEnabled.value=enabled?1:0;},
     freezeStaticTransforms(){
-      // Keep all animated targets and their descendants live, including attached
-      // neon strips, bones and skinned surfaces. Only cache static local matrices.
-      const dynamic=new Set();
-      for(const clip of gltf.animations)for(const track of clip.tracks){
-        const target=THREE.PropertyBinding.findNode(gltf.scene,THREE.PropertyBinding.parseTrackName(track.name).nodeName);
-        target?.traverse(object=>dynamic.add(object));
-      }
-      let cached=0;
-      gltf.scene.traverse(object=>{
-        if(dynamic.has(object)||object.isBone||object.isSkinnedMesh||object.isLight||object.isCamera)return;
-        object.updateMatrix();object.matrixAutoUpdate=false;cached++;
-      });
-      stats.cachedStaticTransforms=cached;
+      stats.cachedStaticTransforms=cacheStaticTransforms(gltf.scene,gltf.animations);
     },
     setShadowActivity(value){animatedShadows=value;},
     async prepare(camera, setWarmupPose, progress = () => {}, beforeEntry){

@@ -1,3 +1,4 @@
+import {loadPageModel,disposeModel} from './page-model.js';
 import {styleSaturn} from './saturn-style.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -12,12 +13,13 @@ export function mountEarthMoonHero() {
  const host = document.querySelector('[data-earth-moon]');
  if (!host || host.dataset.ready) return;
  host.dataset.ready = 'true';
+ const lifetime=new AbortController();
  const hero=host.closest('.earth-hero'),orbitSection=document.querySelector('[data-project-orbit]');
  Object.assign(host.style,{position:'fixed',inset:'0',zIndex:'0',pointerEvents:'none',transform:'none'});hero.parentElement.append(host);
  let disposed = false, frame = 0, visible = true, asset, progress = 0;
  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
  let renderer;
- try { renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true, powerPreference:'low-power' }); } catch { return; }
+ try { renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true, powerPreference:'high-performance' }); } catch { return; }
  renderer.setPixelRatio(cappedPixelRatio(1.75));
  renderer.setSize(innerWidth, innerHeight);
  renderer.toneMapping = THREE.AgXToneMapping;
@@ -48,7 +50,7 @@ export function mountEarthMoonHero() {
    const canvas=document.createElement('canvas');canvas.width=1536;canvas.height=384;const ctx=canvas.getContext('2d');
    ctx.filter='blur(14px)';ctx.drawImage(titleTexture.image,82,80,1372,189);ctx.filter='none';ctx.globalCompositeOperation='source-in';ctx.fillStyle='#3976d6';ctx.fillRect(0,0,1536,384);
    haloTexture=new THREE.CanvasTexture(canvas);haloTexture.colorSpace=THREE.SRGBColorSpace;
-   titleHalo=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:haloTexture,transparent:true,opacity:.6,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));scene.add(titleHalo);placeTitle();request();});
+   titleHalo=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:haloTexture,transparent:true,opacity:.6,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));scene.add(titleHalo);placeTitle();sceneDirty=true;request();});
   titleTexture.colorSpace=THREE.NoColorSpace;titleTexture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
   const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,toneMapped:false,uniforms:{image:{value:titleTexture},glitch:{value:0},time:{value:0}},
    vertexShader:'varying vec2 uvTitle;void main(){uvTitle=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
@@ -64,7 +66,7 @@ export function mountEarthMoonHero() {
    if(disposed)return;
    const canvas=document.createElement('canvas');canvas.width=2151;canvas.height=940;const ctx=canvas.getContext('2d');ctx.shadowColor='#3166af';ctx.shadowBlur=45;ctx.drawImage(nameImage,128,128,1895,684);
    nameTexture=new THREE.CanvasTexture(canvas);nameTexture.colorSpace=THREE.SRGBColorSpace;
-   namePlane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:nameTexture,color:new THREE.Color().setRGB(2.5,2.5,2.5),transparent:true,depthWrite:false,toneMapped:false}));scene.add(namePlane);hero.dataset.webglName='true';placeTitle();request();
+   namePlane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:nameTexture,color:new THREE.Color().setRGB(2.5,2.5,2.5),transparent:true,depthWrite:false,toneMapped:false}));scene.add(namePlane);hero.dataset.webglName='true';placeTitle();sceneDirty=true;request();
   };nameImage.src='/svg/clement-bertrand.svg';
  }
  const target = new THREE.WebGLRenderTarget(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio(), {depthBuffer:true,type:THREE.HalfFloatType});
@@ -88,6 +90,9 @@ export function mountEarthMoonHero() {
  transitionScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),transitionMaterial));
  const transitionCamera=new THREE.Camera();
  let warming=false;
+ let sceneDirty=true,lastSceneProgress=-1,lastSceneGlitch=false;
+ const audit=new URLSearchParams(location.search).has('perf');let sceneDraws=0,screenDraws=0;
+ const lastSceneOffset=new THREE.Vector3(Infinity,Infinity,Infinity);
  function draw(now=performance.now()) {
   frame = 0;
   if (disposed || warming || !visible || document.hidden) return;
@@ -98,15 +103,23 @@ export function mountEarthMoonHero() {
   if(titlePlane){titlePlane.material.uniforms.time.value=now/1000;titlePlane.material.uniforms.glitch.value=now<glitchUntil?1:0;titlePlane.visible=progress<.95;if(titleHalo)titleHalo.visible=titlePlane.visible;if(namePlane)namePlane.visible=titlePlane.visible;}
   stars.update(0,renderer.getPixelRatio(),camera.position);
   if(sky)sky.position.copy(camera.position);
-  renderer.setRenderTarget(target);renderer.render(scene, camera);
+  // Keep the full-quality scene image while only screen-space ripples change.
+  // No texture, geometry, effect or pixel ratio is reduced.
+  const glitching=progress<.95&&now<glitchUntil;
+  const cameraMoving=progress<1&&!lastSceneOffset.equals(offset);
+  if(sceneDirty||progress!==lastSceneProgress||cameraMoving||glitching||lastSceneGlitch){
+   renderer.setRenderTarget(target);renderer.render(scene,camera);if(audit)sceneDraws++;
+   sceneDirty=false;lastSceneProgress=progress;lastSceneOffset.copy(offset);lastSceneGlitch=glitching;
+  }
   renderer.setRenderTarget(null);transitionMaterial.uniforms.progress.value=progress;transitionMaterial.uniforms.time.value=now/1000;
   renderer.render(transitionScene, transitionCamera);
+  if(audit){screenDraws++;host.dataset.renderAudit=JSON.stringify({sceneDraws,screenDraws,pixelRatio:renderer.getPixelRatio(),progress});}
   if (!reduce && (offset.distanceToSquared(desired) > .00000001 || now<rippleUntil || now<glitchUntil)) request();
  }
  function request() { if (!frame && !disposed) frame = requestAnimationFrame(draw); }
  const pointer=e=>{const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight,now=performance.now();desired.set((x-.5)*.28,(y-.5)*.22,0);const distance=lastPointer.distanceTo(new THREE.Vector2(x,y));if(now-lastRipple>65&&distance>.018){ripples[rippleIndex].set(x,y,now/1000,Math.min(1,.4+distance*5));rippleIndex=(rippleIndex+1)%ripples.length;lastRipple=now;lastPointer.set(x,y);rippleUntil=now+3200;}request();};
- new GLTFLoader().loadAsync('/models/space/ESPACE_PROJETS.glb?v=arrival-5').then(g => {
-  if (disposed) { g.scene.traverse(o => o.geometry?.dispose()); return; }
+ loadPageModel(new GLTFLoader(),'/models/space/ESPACE_PROJETS.glb?v=arrival-5',lifetime.signal).then(g => {
+  if (disposed) { disposeModel(g); return; }
   asset = g.scene; scene.add(asset);
   // Use the same authored camera and its first animation frame as the space arrival.
   const original=g.cameras.find(c=>c.name==='SPACE_ScrollCamera')??g.cameras[0];
@@ -144,10 +157,10 @@ export function mountEarthMoonHero() {
   // Compile shaders in parallel (KHR_parallel_shader_compile) instead of blocking the page on the first frame.
   // The scene renders into `target`, so compile with that target bound: the programs then match the real frame.
   warming=true;renderer.setRenderTarget(target);const compiling=renderer.compileAsync(scene,camera);renderer.setRenderTarget(null);
-  compiling.catch(()=>{}).then(()=>{warming=false;request();});
- }).catch(console.error);
+  compiling.catch(()=>{}).then(()=>{warming=false;sceneDirty=true;request();});
+ }).catch(error=>{if(error.name!=='AbortError'&&!disposed)console.error(error);});
  if (!reduce) window.addEventListener('pointermove', pointer, {passive:true});
- const resize = () => { camera.aspect=innerWidth/innerHeight; if(camera.userData.spaceBaseFov)camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.userData.spaceBaseFov)/2)*1.08*Math.max(1,1.6/camera.aspect)));camera.updateProjectionMatrix();fitSaturnEndpoint();placeTitle();transitionMaterial.uniforms.aspect.value=camera.aspect; renderer.setSize(innerWidth,innerHeight); target.setSize(innerWidth*renderer.getPixelRatio(),innerHeight*renderer.getPixelRatio()); request(); };
+ const resize = () => { sceneDirty=true; camera.aspect=innerWidth/innerHeight; if(camera.userData.spaceBaseFov)camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.userData.spaceBaseFov)/2)*1.08*Math.max(1,1.6/camera.aspect)));camera.updateProjectionMatrix();fitSaturnEndpoint();placeTitle();transitionMaterial.uniforms.aspect.value=camera.aspect; renderer.setSize(innerWidth,innerHeight); target.setSize(innerWidth*renderer.getPixelRatio(),innerHeight*renderer.getPixelRatio()); request(); };
  window.addEventListener('resize',resize);
  const observer = new IntersectionObserver(entries => { visible=entries[0].isIntersecting;  if(visible)request(); });
  observer.observe(host);
@@ -168,7 +181,7 @@ export function mountEarthMoonHero() {
   request();
  };scroll();
  window.addEventListener('scroll',scroll,{passive:true});
- function cleanup(){disposed=true;host.remove();clearTimeout(glitchTimer);delete hero.dataset.webglTitle;delete hero.dataset.webglName;nameTexture?.dispose();haloTexture?.dispose();for(const mesh of [namePlane,titleHalo]){mesh?.geometry.dispose();mesh?.material.dispose();}titleTexture?.dispose();titlePlane?.geometry.dispose();titlePlane?.material.dispose();delete document.body.dataset.heroVisible;document.documentElement.style.removeProperty('--home-transition');document.documentElement.style.removeProperty('--home-handoff-filter');document.documentElement.style.removeProperty('--home-handoff-line-y');document.documentElement.style.removeProperty('--home-handoff-line-opacity');document.documentElement.style.removeProperty('--home-handoff-feather');cancelAnimationFrame(frame);observer.disconnect();window.removeEventListener('pointermove',pointer);window.removeEventListener('resize',resize);window.removeEventListener('scroll',scroll);asset?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m?.dispose();});stars.dispose();ringSurface?.dispose();atmosphere?.dispose();target.dispose();transitionMaterial.dispose();transitionScene.children[0].geometry.dispose();renderer.dispose();}
+ function cleanup(){if(disposed)return;disposed=true;document.removeEventListener('astro:before-swap',cleanup);window.removeEventListener('pagehide',cleanup);lifetime.abort();host.remove();clearTimeout(glitchTimer);delete hero.dataset.webglTitle;delete hero.dataset.webglName;nameTexture?.dispose();haloTexture?.dispose();for(const mesh of [namePlane,titleHalo]){mesh?.geometry.dispose();mesh?.material.dispose();}titleTexture?.dispose();titlePlane?.geometry.dispose();titlePlane?.material.dispose();delete document.body.dataset.heroVisible;document.documentElement.style.removeProperty('--home-transition');document.documentElement.style.removeProperty('--home-handoff-filter');document.documentElement.style.removeProperty('--home-handoff-line-y');document.documentElement.style.removeProperty('--home-handoff-line-opacity');document.documentElement.style.removeProperty('--home-handoff-feather');cancelAnimationFrame(frame);observer.disconnect();window.removeEventListener('pointermove',pointer);window.removeEventListener('resize',resize);window.removeEventListener('scroll',scroll);const textures=new Set();asset?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])if(m){for(const value of Object.values(m))if(value?.isTexture)textures.add(value);m.dispose();}});textures.forEach(texture=>texture.dispose());stars.dispose();ringSurface?.dispose();atmosphere?.dispose();target.dispose();transitionMaterial.dispose();transitionScene.children[0].geometry.dispose();renderer.dispose();renderer.forceContextLoss();}
  document.addEventListener('astro:before-swap',cleanup,{once:true});
  window.addEventListener('pagehide',cleanup,{once:true});request();
 }

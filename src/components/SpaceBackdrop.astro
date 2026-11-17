@@ -3,8 +3,9 @@
 <script>
 function mountBackdrop(){for(const host of document.querySelectorAll<HTMLElement>('[data-space-backdrop]')){
  if(host.dataset.ready)continue;host.dataset.ready='true';if(document.querySelector('[data-earth-moon]')){host.remove();continue;}
- let disposed=false,cleanup:(()=>void)|undefined;const observer=new IntersectionObserver(entries=>{if(!entries.some(e=>e.isIntersecting))return;observer.disconnect();import('../lib/space/backdrop.js').then(async({createSpaceBackdrop})=>{if(disposed)return;const close=await createSpaceBackdrop(host);if(disposed)close?.();else cleanup=close;}).catch(console.warn);},{rootMargin:'200px'});observer.observe(host.closest('section')||host);
- document.addEventListener('astro:before-swap',()=>{disposed=true;observer.disconnect();cleanup?.();},{once:true});
+ const lifetime=new AbortController();
+ let disposed=false,cleanup:(()=>void)|undefined;const observer=new IntersectionObserver(entries=>{if(!entries.some(e=>e.isIntersecting))return;observer.disconnect();import('../lib/space/backdrop.js').then(async({createSpaceBackdrop})=>{if(disposed)return;const close=await createSpaceBackdrop(host,{signal:lifetime.signal});if(disposed)close?.();else cleanup=close;}).catch(console.warn);},{rootMargin:'200px'});observer.observe(host.closest('section')||host);
+ document.addEventListener('astro:before-swap',()=>{disposed=true;lifetime.abort();observer.disconnect();cleanup?.();},{once:true});
 }}
 mountBackdrop();document.addEventListener('astro:page-load',mountBackdrop);
 </script>
