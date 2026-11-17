@@ -45,7 +45,7 @@ const prefix=immersive?'contact-3d':'contact-2d';
     {Array.from('Envoyer').map((letter,index)=><span class="contact-send-letter" style={`--i:${index}`} aria-hidden="true"><span>{letter}</span><em>{letter}</em></span>)}
    </button>
    <p class="contact-privacy">Nom, email et message requis ; fichier facultatif. Vos informations servent à vous répondre et sont transmises via FormSubmit. <a href="/mentions-legales/#confidentialite">Confidentialité et droits</a>.</p>
-   <button class="contact-direct" type="button" data-contact-direct>Activer le formulaire / envoyer via FormSubmit</button>
+   <button class="contact-direct" type="button" data-contact-direct hidden>Envoyer autrement, via la page FormSubmit</button>
    <p class="contact-form-status" data-form-status role="status" aria-live="polite"></p>
   </form>
  </div>

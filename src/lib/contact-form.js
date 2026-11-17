@@ -41,9 +41,9 @@ export function mountContactForms(){
    try{
     const endpoint=form.action.replace('https://formsubmit.co/','https://formsubmit.co/ajax/');
     const response=await fetch(endpoint,{method:'POST',headers:{Accept:'application/json'},body,signal:controller.signal});
-    const result=submissionResult(await response.json(),response.ok);status.textContent=result.message;status.dataset.state=result.success?'success':'error';
+    const result=submissionResult(await response.json(),response.ok);status.textContent=result.message;status.dataset.state=result.success?'success':'error';if(direct)direct.hidden=result.success;
     if(result.success){form.reset();fileChange();for(const field of fields)field.querySelector('input,textarea').dispatchEvent(new Event('input'));}
-   }catch(error){if(form.isConnected){status.textContent=error.name==='AbortError'?'L’envoi prend trop de temps. Ton message est conservé, tu peux réessayer.':'Connexion interrompue. Ton message est conservé, tu peux réessayer.';status.dataset.state='error';}}
+   }catch(error){if(form.isConnected){if(direct)direct.hidden=false;status.textContent=error.name==='AbortError'?'L’envoi prend trop de temps. Ton message est conservé, tu peux réessayer.':'Connexion interrompue. Ton message est conservé, tu peux réessayer.';status.dataset.state='error';}}
    finally{clearTimeout(timeout);pending=false;send.disabled=false;if(direct)direct.disabled=false;send.removeAttribute('aria-busy');}
   }
   form.addEventListener('submit',submit);

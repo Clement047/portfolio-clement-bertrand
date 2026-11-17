@@ -15,4 +15,4 @@ Le formulaire conserve son contenu si le service signale une activation nécessa
 
 Documentation du service : https://formsubmit.co/documentation (sections File uploads et AJAX Forms).
 
-En cas de délai dépassé, le bouton « Activer le formulaire / envoyer via FormSubmit » soumet directement les champs et la pièce jointe au service, avec son contrôle anti-spam. Cette action est volontaire pour éviter une deuxième tentative automatique. Clément doit confirmer le lien reçu par e-mail.
+En cas d’échec ou de délai dépassé, le bouton « Envoyer autrement, via la page FormSubmit » apparaît ; il soumet directement les champs et la pièce jointe au service, avec son contrôle anti-spam. Cette action est volontaire pour éviter une deuxième tentative automatique. Clément doit confirmer le lien reçu par e-mail.
