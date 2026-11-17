@@ -7,10 +7,10 @@ export function touchAdvance(previousY, currentY) { return bounded((previousY-cu
 export function initialPixelRatio(width, height, deviceRatio=1) { return Math.min(deviceRatio, getQuality().maxRatio, Math.sqrt(1800000/Math.max(1,width*height))); }
 // Sustained frame pacing, never an isolated loading spike, controls the render budget.
 export function createFrameBudget(initial, onChange) {
- let ratio=initial, total=0, samples=0, stable=0, cooldown=0, smooth=0, recovered=false;
+ let ratio=initial, total=0, samples=0, stable=0, cooldown=0, smooth=0, recovered=false, slow=0, played=0;
  return { get ratio(){return ratio;}, sample(seconds, eligible=true){
   if(!eligible||seconds<=0||!Number.isFinite(seconds)){total=0;samples=0;stable=0;return;}
-  cooldown=Math.max(0,cooldown-seconds);total+=Math.min(seconds,.12);samples++;
+  cooldown=Math.max(0,cooldown-seconds);played+=seconds;total+=Math.min(seconds,.12);samples++;
   if(samples<24)return;
   const average=total/samples;total=0;samples=0;
   stable=average<.0178?stable+1:0;
@@ -20,7 +20,8 @@ export function createFrameBudget(initial, onChange) {
   // Only a computer still too slow at the floor moves to the next quality level
   // (lighter effects, then a lower floor), shared with every other scene.
   const floor=Math.min(initial,getQuality().floor);
-  if(ratio<=floor+.01&&average>.024){if(getLevel()<MAX_LEVEL){setLevel(getLevel()+1);cooldown=1;return;}}
+  // Never in the first seconds (loading, first shaders) and never on a single slow spell.
+  if(ratio<=floor+.01&&average>.024&&played>8){if(++slow>=3&&getLevel()<MAX_LEVEL){slow=0;setLevel(getLevel()+1);cooldown=1.5;return;}}else slow=0;
   // Smooth for a long time at full resolution: give back one level, once per visit (no back-and-forth).
   if(!recovered&&smooth>=40&&getLevel()>0&&ratio>=initial-.01){smooth=0;recovered=true;setLevel(getLevel()-1);cooldown=6;return;}
   // Frame cost follows the pixel count (ratio²): a slow frame jumps straight to the
