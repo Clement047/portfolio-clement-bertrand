@@ -21,7 +21,7 @@ export function createArrivalSequence({ arrivalTime, endTime, actorStart, actorE
       const elapsed=clock-started;
       if(elapsed<readingDuration) return {phase:'interaction',cameraTime:arrivalTime,actorTime:actorStart+Math.min(elapsed,interactionDuration),dialogueElapsed:elapsed,warpTime:0,blend:0};
       const ascent=elapsed-readingDuration;
-      if(ascent<ascentDuration) return {phase:'ascent',cameraTime:arrivalTime+(endTime-arrivalTime)*smooth(ascent/ascentDuration),actorTime:actorEnd,warpTime:0,blend:0,ascentProgress:ascent/ascentDuration};
+      if(ascent<ascentDuration) return {phase:'ascent',dialogueElapsed:elapsed,cameraTime:arrivalTime+(endTime-arrivalTime)*smooth(ascent/ascentDuration),actorTime:actorEnd,warpTime:0,blend:0,ascentProgress:ascent/ascentDuration};
       const warpTime=ascent-ascentDuration;
       return {phase:warpTime>=warpDuration?'projects':warpTime>=warpDuration-fadeDuration?'project-transition':'hyperspace',cameraTime:endTime,actorTime:actorEnd,warpTime,blend:smooth((warpTime-(warpDuration-fadeDuration))/fadeDuration)};
     }

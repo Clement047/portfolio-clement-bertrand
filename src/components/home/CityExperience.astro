@@ -19,7 +19,7 @@ import ContactLanding from '../ContactLanding.astro';
   </div>
   <p id="city-scroll-start" hidden>Faites défiler pour explorer ↕</p>
   <aside id="city-about-hint" hidden><span aria-hidden="true">↑ ↓</span><p>Prenez le temps de lire.<br>Défilez dans les deux sens.</p></aside>
-  <aside id="sparky-dialogue" hidden role="status" aria-live="polite"><strong>● SPARKY</strong><p></p></aside>
+  <aside id="sparky-dialogue" hidden role="status" aria-live="polite"><strong>● SPARKY</strong><p data-no-translate></p></aside>
   <noscript><a href="/portfolio-2d/">Découvrir le portfolio en 2D</a></noscript>
 </div>
 <style>
@@ -352,7 +352,7 @@ renderer.toneMappingExposure = 0.85;
         const hyperspace = createHyperspaceTransition(renderer, container);
         let phase = 'city';
         let entered = false;
-        let dialogueLine='',dialogueStarted=0;
+
         const entry = document.querySelector<HTMLElement>('#city-entry')!;
         const startHint = document.querySelector<HTMLElement>('#city-scroll-start')!;
         const aboutHint = document.querySelector<HTMLElement>('#city-about-hint')!;
@@ -487,7 +487,16 @@ renderer.toneMappingExposure = 0.85;
           const dialogue=document.querySelector<HTMLElement>('#sparky-dialogue')!;
           const speaking=view.phase==='interaction'||view.phase==='ascent';
           dialogue.hidden=!speaking;
-          if(speaking){const second=view.phase==='ascent'||(view.dialogueElapsed??0)>=3.8;const line=translate(second?'Direction l’espace. Une petite semaine de vacances…\nEnfin, pour moi. Toi, t’as encore les projets à regarder.':'Bon… tu comptais visiter chaque immeuble ?\nLaisse-moi gérer la suite.');const paragraph=dialogue.querySelector('p')!;if(dialogueLine!==line){dialogueLine=line;dialogueStarted=performance.now();}const text=streamedDialogue(line,performance.now()-dialogueStarted);if(paragraph.textContent!==text)paragraph.textContent=text;}else{dialogueLine='';dialogue.querySelector('p')!.textContent='';}
+          const paragraph=dialogue.querySelector('p')!;
+          if(speaking){
+            // Use the same paused, clamped clock as the arrival sequence. Heavy
+            // scene preparation must not skip the first line's typing animation.
+            const elapsed=view.dialogueElapsed??0;
+            const second=elapsed>=3.8;
+            const line=translate(second?'Direction l’espace. Une petite semaine de vacances…\nEnfin, pour moi. Toi, t’as encore les projets à regarder.':'Bon… tu comptais visiter chaque immeuble ?\nLaisse-moi gérer la suite.');
+            const text=streamedDialogue(line,(elapsed-(second?3.8:0))*1000);
+            if(paragraph.textContent!==text)paragraph.textContent=text;
+          }else if(paragraph.textContent)paragraph.textContent='';
           rendering.update(secondaryMixer.time);
           startHint.hidden=!entered||currentProgress>.025||arrival.locked;
           aboutHint.hidden=!entered||currentProgress<.19||currentProgress>.40||arrival.locked;

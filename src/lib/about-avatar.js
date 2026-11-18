@@ -1,4 +1,5 @@
 import {loadPageModel} from './page-model.js';
+import {createPortraitFacts} from './portrait-facts.js';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
@@ -37,6 +38,7 @@ export async function mountAboutAvatar(host,{signal}={}){
  softbox(0xe1e7ff,6,1,3,-3,3,4);
  let frame=0,disposed=false,visible=true,model,pivot,reactionStart=-Infinity,reactionDirection=1,lastGrunt=-1;
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,duration=reduced?240:820;
+ const facts=createPortraitFacts(host,{reduced});
  const hitGeometry=new THREE.BoxGeometry(2,2,2),hitMaterial=new THREE.MeshBasicMaterial(),hitProxy=new THREE.Mesh(hitGeometry,hitMaterial),raycaster=new THREE.Raycaster();
  const sharpRatio=Math.min(Math.max(devicePixelRatio,1.75),2,getQuality().maxRatio*1.6);let motionQuality=false;
  function quality(moving){if(motionQuality===moving)return;motionQuality=moving;renderer.setPixelRatio(moving?Math.min(devicePixelRatio,1.25):sharpRatio);renderer.setSize(mount.clientWidth,mount.clientHeight,false);}
@@ -50,6 +52,7 @@ export async function mountAboutAvatar(host,{signal}={}){
  function react(direction){
   if(!model||disposed)return;
   reactionDirection=direction;reactionStart=performance.now();quality(true);
+  facts.show();
   const index=lastGrunt<0?Math.floor(Math.random()*13):(lastGrunt+1+Math.floor(Math.random()*12))%13;lastGrunt=index;
   window.dispatchEvent(new CustomEvent('portfolio:grunt',{detail:{index:index+1}}));invalidate();
  }
@@ -74,7 +77,7 @@ export async function mountAboutAvatar(host,{signal}={}){
  canvas.addEventListener('keydown',key);
  window.dispatchEvent(new Event('portfolio:prepare-grunts'));
  const draco=new DRACOLoader();draco.setDecoderPath('/vendor/draco/');const loader=new GLTFLoader();loader.setDRACOLoader(draco);
- function dispose(){if(disposed)return;disposed=true;lifetime.abort();near?.disconnect();resolveNear?.();signal?.removeEventListener('abort',dispose);cancelAnimationFrame(frame);ro.disconnect();io.disconnect();hitGeometry.dispose();hitMaterial.dispose();window.dispatchEvent(new Event('portfolio:stop-grunt'));canvas.removeEventListener('pointerdown',pointerDown);canvas.removeEventListener('click',click);draco.dispose();env.dispose();document.removeEventListener('visibilitychange',visibility);canvas.removeEventListener('keydown',key);model?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m?.dispose();});renderer.dispose();renderer.forceContextLoss();canvas.remove();delete host.dataset.loaded;}
+ function dispose(){if(disposed)return;disposed=true;facts.dispose();lifetime.abort();near?.disconnect();resolveNear?.();signal?.removeEventListener('abort',dispose);cancelAnimationFrame(frame);ro.disconnect();io.disconnect();hitGeometry.dispose();hitMaterial.dispose();window.dispatchEvent(new Event('portfolio:stop-grunt'));canvas.removeEventListener('pointerdown',pointerDown);canvas.removeEventListener('click',click);draco.dispose();env.dispose();document.removeEventListener('visibilitychange',visibility);canvas.removeEventListener('keydown',key);model?.traverse(o=>{o.geometry?.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m?.dispose();});renderer.dispose();renderer.forceContextLoss();canvas.remove();delete host.dataset.loaded;}
  signal?.addEventListener('abort',dispose,{once:true});
  resize();
  // The portrait sits far down the page: load it only when the visitor gets close.

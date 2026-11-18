@@ -10,7 +10,7 @@
     </div>
     <div class="portrait" data-about-avatar>
       <div class="portrait-canvas" data-avatar-canvas role="group" aria-label="Portrait interactif de Clément Bertrand"></div>
-      <p class="portrait-help" id="portrait-interaction-hint" data-avatar-status aria-live="polite">Chargement du portrait…</p>
+      <p class="portrait-help" id="portrait-interaction-hint"><span data-avatar-status aria-live="polite">Chargement du portrait…</span><span data-avatar-fact data-no-translate aria-hidden="true"></span><span class="portrait-announcement" data-avatar-announcement data-no-translate role="status" aria-live="polite" aria-atomic="true"></span></p>
     </div>
   </div>
 </section>
@@ -22,6 +22,7 @@
 .presentation-copy p{margin:0 0 25px}.presentation-copy p:nth-child(4){margin-top:45px}
 .portrait{position:relative;width:min(100%,780px);height:clamp(430px,65vw,680px);margin:20px auto 0}.portrait-canvas{position:absolute;inset:0 0 35px;cursor:pointer;touch-action:pan-y}.portrait-canvas:active{cursor:pointer}.portrait-canvas :global(canvas){display:block;width:100%;height:100%;outline:none}.portrait-canvas :global(canvas:focus-visible){outline:1px solid #91cfff;outline-offset:-4px}
 .portrait-help{position:absolute;bottom:clamp(50px,9vw,75px);width:100%;margin:0;color:#dce7f7;font:clamp(20px,2vw,26px)/1.25 PortfolioMabry,sans-serif;pointer-events:none}
+.portrait-help [data-avatar-fact]{display:none}.portrait[data-has-fact] [data-avatar-status]{display:none}.portrait[data-has-fact] [data-avatar-fact]{display:block}.portrait[data-has-fact] .portrait-help{box-sizing:border-box;padding:0 18px;top:calc(100% - clamp(50px,9vw,75px) - 1.25em);bottom:auto;line-height:1.4}.portrait[data-has-fact]{margin-bottom:140px}.portrait-announcement{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(max-width:600px){.presentation-content{padding:100px 24px 50px}.presentation-copy{font-size:16px}.portrait{height:470px}.presentation-copy p{margin-bottom:23px}}
 </style>
 <script>
